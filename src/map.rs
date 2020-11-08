@@ -3,9 +3,9 @@ use std::cmp::{max, min};
 use super::{Rect};
 use specs::prelude::*;
 
-const MAPWIDTH: usize = 80;
-const MAPHEIGHT: usize = 43;
-const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
+pub const MAPWIDTH: usize = 80;
+pub const MAPHEIGHT: usize = 43;
+pub const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
@@ -25,7 +25,7 @@ pub struct Map {
 
 impl Map {
     pub fn xy_index(&self, x: i32, y: i32) -> usize {
-        (y as usize * MAPWIDTH) + x as usize
+        (y as usize * self.width as usize) + x as usize
     }
     
     fn apply_room_to_map(&mut self, room: &Rect) {

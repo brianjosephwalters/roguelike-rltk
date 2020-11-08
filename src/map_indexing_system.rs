@@ -12,6 +12,7 @@ impl<'a> System<'a> for MapIndexingSystem {
         Entities<'a>
     );
 
+    #[allow(unused_variables, dead_code)]
     fn run(&mut self, data: Self::SystemData) {
         let (mut map, position, blockers, entities) = data;
 
@@ -19,7 +20,6 @@ impl<'a> System<'a> for MapIndexingSystem {
         map.clear_content_index();
         for (entity, position) in (&entities, &position).join() {
             let index = map.xy_index(position.x, position.y);
-
             let _p: Option<&BlocksTile> = blockers.get(entity);
             if let Some(_p) = _p {
                 map.blocked[index] = true;

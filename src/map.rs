@@ -1,17 +1,19 @@
-use rltk::{ RGB, Rltk, Console, RandomNumberGenerator, Algorithm2D, BaseMap, Point };
+use rltk::{ RGB, Rltk, RandomNumberGenerator, Algorithm2D, BaseMap, Point, SmallVec};
 use std::cmp::{max, min};
 use super::{Rect};
 use specs::prelude::*;
+use serde::{Serialize, Deserialize};
 
 pub const MAPWIDTH: usize = 80;
 pub const MAPHEIGHT: usize = 43;
 pub const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub enum TileType {
     Wall, Floor
 }
 
+#[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Map {
     pub tiles: Vec<TileType>,
     pub rooms: Vec<Rect>,
@@ -20,6 +22,9 @@ pub struct Map {
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
     pub blocked: Vec<bool>,
+
+    #[serde(skip_serializing)]
+    #[serde(skip_deserializing)]
     pub tile_content: Vec<Vec<Entity>>,
 }
 
@@ -137,8 +142,8 @@ impl BaseMap for Map {
         self.tiles[index as usize] == TileType::Wall
     }
 
-    fn get_available_exits(&self, index: usize) -> Vec<(usize, f32)> {
-        let mut exits: Vec<(usize, f32)> = Vec::new();
+    fn get_available_exits(&self, index: usize) -> SmallVec<[(usize, f32); 10]> {
+        let mut exits = SmallVec::new();
 
         let x = index as i32 % self.width;
         let y = index as i32 / self.width;

@@ -1,5 +1,7 @@
 use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
+use crate::TileType;
+
 use super::{CombatStats, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem};
 use std::cmp::{min, max};
 
@@ -57,6 +59,19 @@ pub fn get_item(ecs: &mut World) {
 
 }
 
+pub fn try_next_level(ecs: &mut World) -> bool {
+    let player_pos = ecs.fetch::<Point>();
+    let map = ecs.fetch::<Map>();
+    let player_index = map.xy_index(player_pos.x, player_pos.y);
+    if map.tiles[player_index] == TileType::DownStairs {
+        true
+    } else {
+        let mut gamelog = ecs.fetch_mut::<GameLog>();
+        gamelog.entries.push("There is no way down from here.".to_string());
+        false
+    }
+}
+
 pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     match ctx.key {
         None => { return RunState::AwaitingInput }
@@ -95,7 +110,11 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             VirtualKeyCode::I => return RunState::ShowInventory,
 
             VirtualKeyCode::D => return RunState::ShowDropItem,
-
+            VirtualKeyCode::Period => {
+                if try_next_level(&mut gs.ecs) {
+                    return RunState::NextLevel;
+                }
+            }
             // Save and Quit
             VirtualKeyCode::Escape => return RunState::SaveGame,
             

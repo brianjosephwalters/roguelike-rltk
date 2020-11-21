@@ -10,6 +10,10 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
     let players = ecs.read_storage::<Player>();
     let log = ecs.fetch::<GameLog>();
 
+    let map = ecs.fetch::<Map>();
+    let depth = format!("Depth: {}", map.depth);
+    ctx.print_color(2, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
+
     for (_player, stats) in (&players, &combat_stats).join() {
         let health = format!("HP {} / {}", stats.hp, stats.max_hp);
         ctx.print_color(12, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &health);

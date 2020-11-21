@@ -9,7 +9,8 @@ use specs::error::NoError;
 use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, BlocksTile, 
     CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
     AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-    WantsToDropItem, SerializationHelper };
+    WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
+    WantsToRemoveItem };
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -41,7 +42,8 @@ pub fn save_game(ecs: &mut World) {
             Position, Renderable, Player, Viewshed, Monster, Name, BlocksTile, 
             CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-            WantsToDropItem, SerializationHelper
+            WantsToDropItem, SerializationHelper, Equipped, MeleePowerBonus, DefenseBonus,
+            WantsToRemoveItem
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
@@ -92,7 +94,7 @@ pub fn load_game(ecs: &mut World) {
         deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Monster, 
             Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-            WantsToDropItem, SerializationHelper);
+            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus);
     }
 
     let mut deleteme: Option<Entity> = None;

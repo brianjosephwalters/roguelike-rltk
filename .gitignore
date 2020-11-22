@@ -3,3 +3,5 @@
 .vscode/
 _git2_a22296
 desktop.ini
+Cargo.lock
+savegame.json

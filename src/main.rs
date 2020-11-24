@@ -49,6 +49,7 @@ use random_tables::RandomTable;
 
 pub mod saveload_system;
 pub mod map_builders;
+pub mod raws;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { 
@@ -423,6 +424,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<WantsToRemoveItem>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+
+    raws::load_raws();
 
     gs.ecs.insert(Map::new(1));
     gs.ecs.insert(Point::new(0, 0));

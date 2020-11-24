@@ -8,24 +8,33 @@ use super::{
     common::apply_vertical_tunnel,
 };
 
-pub struct SimpleMapBuilder {}
+pub struct SimpleMapBuilder {
+    depth: i32,
+}
 
 impl MapBuilder for SimpleMapBuilder {
 
-    fn build_map(&mut self, new_depth: i32) -> (Map, Position) {
-        let mut map = Map::new(new_depth);
+    fn build_map(&mut self) -> (Map, Position) {
+        let mut map = Map::new(self.depth);
         let playerpos = SimpleMapBuilder::rooms_and_corridors(&mut map);
         (map, playerpos)
     }
 
-    fn spawn_entities(&mut self, map : &Map, ecs : &mut specs::World, new_depth: i32) {
+    fn spawn_entities(&mut self, map : &Map, ecs : &mut specs::World) {
         for room in map.rooms.iter().skip(1) {
-            spawner::spawn_room(ecs, room, new_depth);
+            spawner::spawn_room(ecs, room, self.depth);
         }
     }
 }
 
 impl SimpleMapBuilder {
+
+    pub fn new(new_depth: i32) -> SimpleMapBuilder {
+        SimpleMapBuilder {
+            depth: new_depth
+        }
+    }
+
     fn rooms_and_corridors(map : &mut Map) -> Position {    
         const MAX_ROOMS: i32 = 30;
         const MIN_SIZE: i32 = 6;

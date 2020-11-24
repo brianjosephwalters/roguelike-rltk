@@ -1,5 +1,5 @@
 use rltk::RandomNumberGenerator;
-use crate::{Position, Rect, TileType};
+use crate::{Position, Rect, TileType, spawner};
 use super::{
     Map, 
     MapBuilder, 
@@ -15,6 +15,12 @@ impl MapBuilder for SimpleMapBuilder {
         let mut map = Map::new(new_depth);
         let playerpos = SimpleMapBuilder::rooms_and_corridors(&mut map);
         (map, playerpos)
+    }
+
+    fn spawn(map : &Map, ecs : &mut specs::World, new_depth: i32) {
+        for room in map.rooms.iter().skip(1) {
+            spawner::spawn_room(ecs, room, new_depth);
+        }
     }
 }
 

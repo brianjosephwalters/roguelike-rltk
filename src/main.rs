@@ -145,19 +145,17 @@ impl State {
 
         // Build a new map and place the player
         let mut builder;
-        let mut worldmap;
         let player_start;
 
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
             builder = map_builders::random_builder(worldmap_resource.depth + 1);
-            let (newmap, start) = builder.build_map();
-            *worldmap_resource = newmap;
-            player_start = start;
-            worldmap = worldmap_resource.clone();
+            builder.build_map();
+            *worldmap_resource = builder.get_map();
+            player_start = builder.get_starting_position();
         }
         // Spawn bad guys
-        builder.spawn_entities(&mut worldmap, &mut self.ecs);
+        builder.spawn_entities(&mut self.ecs);
 
         // Place the player and update resources
         let (player_x, player_y) = (player_start.x, player_start.y);
@@ -200,18 +198,16 @@ impl State {
 
         // Build a new map and place the player
         let mut builder = map_builders::random_builder(1);
-        let mut worldmap;
         let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
-            let (newmap, start) = builder.build_map();
-            *worldmap_resource = newmap;
-            player_start = start;
-            worldmap = worldmap_resource.clone();
+            builder.build_map();
+            *worldmap_resource = builder.get_map();
+            player_start = builder.get_starting_position();
         }
 
         // Spawn bad guys
-        builder.spawn_entities(&mut worldmap, &mut self.ecs);
+        builder.spawn_entities(&mut self.ecs);
 
         // Place the player and update resources
         let (player_x, player_y) = (player_start.x, player_start.y);
@@ -445,7 +441,8 @@ fn main() -> rltk::BError {
 
 
     let mut builder = map_builders::random_builder(1);
-    let (mut map, player_start) = builder.build_map();
+    builder.build_map();
+    let player_start = builder.get_starting_position();
     let (player_x, player_y) = (player_start.x, player_start.y);
 
     let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
@@ -453,9 +450,9 @@ fn main() -> rltk::BError {
     
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
-    builder.spawn_entities(&mut map, &mut gs.ecs);
+    builder.spawn_entities(&mut gs.ecs);
 
-    gs.ecs.insert(map);
+    gs.ecs.insert(builder.get_map());
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::MainMenu{ menu_selection: gui::MainMenuSelection::NewGame });

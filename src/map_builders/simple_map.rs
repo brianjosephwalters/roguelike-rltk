@@ -11,13 +11,14 @@ use super::{
 pub struct SimpleMapBuilder {}
 
 impl MapBuilder for SimpleMapBuilder {
-    fn build(new_depth: i32) -> (Map, Position) {
+
+    fn build_map(&mut self, new_depth: i32) -> (Map, Position) {
         let mut map = Map::new(new_depth);
         let playerpos = SimpleMapBuilder::rooms_and_corridors(&mut map);
         (map, playerpos)
     }
 
-    fn spawn(map : &Map, ecs : &mut specs::World, new_depth: i32) {
+    fn spawn_entities(&mut self, map : &Map, ecs : &mut specs::World, new_depth: i32) {
         for room in map.rooms.iter().skip(1) {
             spawner::spawn_room(ecs, room, new_depth);
         }

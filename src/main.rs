@@ -48,6 +48,7 @@ mod random_tables;
 use random_tables::RandomTable;
 
 pub mod saveload_system;
+pub mod map_builders;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { 
@@ -145,10 +146,13 @@ impl State {
         // Build a new map and place the player
         let worldmap;
         let current_depth;
+        let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
             current_depth = worldmap_resource.depth;
-            *worldmap_resource = Map::new_map_rooms_and_corridors(current_depth + 1);
+            let (newmap, start) = map_builders::build_random_map(current_depth + 1);
+            *worldmap_resource = newmap;
+            player_start = start;
             worldmap = worldmap_resource.clone();
         }
         // Spawn bad guys
@@ -157,7 +161,7 @@ impl State {
         }
 
         // Place the player and update resources
-        let (player_x, player_y) = worldmap.rooms[0].center();
+        let (player_x, player_y) = (player_start.x, player_start.y);
         let mut player_position = self.ecs.write_resource::<Point>();
         *player_position = Point::new(player_x, player_y);
         let mut position_components = self.ecs.write_storage::<Position>();
@@ -197,9 +201,12 @@ impl State {
 
         // Build a new map and place the player
         let worldmap;
+        let player_start;
         {
             let mut worldmap_resource = self.ecs.write_resource::<Map>();
-            *worldmap_resource = Map::new_map_rooms_and_corridors(1);
+            let (newmap, start) = map_builders::build_random_map(1);
+            *worldmap_resource = newmap;
+            player_start = start;
             worldmap = worldmap_resource.clone();
         }
 
@@ -209,7 +216,7 @@ impl State {
         }
 
         // Place the player and update resources
-        let (player_x, player_y) = worldmap.rooms[0].center();
+        let (player_x, player_y) = (player_start.x, player_start.y);
         let player_entity = spawner::player(&mut self.ecs, player_x, player_y);
         let mut player_position = self.ecs.write_resource::<Point>();
         *player_position = Point::new(player_x, player_y);
@@ -439,8 +446,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<WantsToRemoveItem>();
 
 
-    let map: Map = Map::new_map_rooms_and_corridors(1);
-    let (player_x, player_y) = map.rooms[0].center();
+    let (map, player_start) = map_builders::build_random_map(1);
+    let (player_x, player_y) = (player_start.x, player_start.y);
 
     let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
 

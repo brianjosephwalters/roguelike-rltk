@@ -1,4 +1,6 @@
 extern crate serde;
+#[macro_use]
+extern crate lazy_static;
 
 use rltk::{GameState, Point, Rltk};
 use specs::{World, WorldExt};

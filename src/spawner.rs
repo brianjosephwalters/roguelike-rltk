@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rltk::{ RGB, RandomNumberGenerator, FontCharType };
 use specs::prelude::*;
 use specs::saveload::{MarkedBuilder, SimpleMarker};
-use crate::{Map, TileType, raws::spawn_named_item};
+use crate::{Map, TileType, raws::get_spawn_table_for_depth};
 
 use super::{
     CombatStats, Player, Renderable, 
@@ -267,15 +267,5 @@ fn tower_shield(ecs: &mut World, x: i32, y: i32) {
 }
 
 fn room_table(map_depth: i32) -> RandomTable {
-    RandomTable::new()
-        .add("Goblin", 10)
-        .add("Orc", 1 + map_depth)
-        .add("Health Potion", 7)
-        .add("Fireball Scroll", 2 + map_depth)
-        .add("Confusion Scroll", 2 + map_depth)
-        .add("Magic Missile Scroll", 4)
-        .add("Dagger", 3)
-        .add("Shield", 3)
-        .add("Longsword", map_depth - 1)
-        .add("Tower Shield", map_depth - 1)
+    get_spawn_table_for_depth(&RAWS.lock().unwrap(), map_depth)
 }

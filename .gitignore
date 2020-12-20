@@ -1,6 +1,7 @@
 /target
 **/*.rs.bk
 .vscode/
+.vs/
 _git2_a22296
 desktop.ini
 Cargo.lock

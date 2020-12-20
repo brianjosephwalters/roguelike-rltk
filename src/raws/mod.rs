@@ -1,5 +1,6 @@
 mod item_structs;
 mod mob_structs;
+mod spawn_table_structs;
 mod rawmaster;
 
 use serde::{Deserialize};
@@ -7,11 +8,13 @@ use std::sync::Mutex;
 pub use rawmaster::*;
 use item_structs::Item;
 use mob_structs::Mob;
+use spawn_table_structs::SpawnTableEntry;
 
 #[derive(Deserialize, Debug)]
 pub struct Raws {
     pub items : Vec<Item>,
-    pub mobs : Vec<Mob>
+    pub mobs : Vec<Mob>,
+    pub spawn_table : Vec<SpawnTableEntry>,
 }
 
 #[derive(Deserialize, Debug)]

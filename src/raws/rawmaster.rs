@@ -1,7 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
-use crate::components::*;
-use super::{Raws};
+use crate::{random_tables::RandomTable, components::*};
+use super::{Raws, spawn_table_structs::SpawnTableEntry};
 
 pub enum SpawnType {
     AtPosition { x: i32, y: i32 }
@@ -17,7 +17,7 @@ impl RawMaster {
     
     pub fn empty() -> RawMaster {
         RawMaster {
-            raws : Raws { items: Vec::new(), mobs: Vec::new() },
+            raws : Raws { items: Vec::new(), mobs: Vec::new(), spawn_table: Vec::new(), },
             item_index : HashMap::new(),
             mob_index: HashMap::new(),
         }
@@ -26,11 +26,25 @@ impl RawMaster {
     pub fn load(&mut self, raws : Raws) {
         self.raws = raws;
         self.item_index = HashMap::new();
+        let mut used_names : HashSet<String> = HashSet::new();
         for (i,item) in self.raws.items.iter().enumerate() {
+            if used_names.contains(&item.name) {
+                rltk::console::log(format!("WARNING -  duplicate item name in raws [{}]", item.name));
+            }
             self.item_index.insert(item.name.clone(), i);
+            used_names.insert(item.name.clone());
         }
-        for (i, mob) in self.raws.items.iter().enumerate() {
+        for (i, mob) in self.raws.mobs.iter().enumerate() {
+            if used_names.contains(&mob.name) {
+                rltk::console::log(format!("WARNING -  duplicate mob name in raws [{}]", mob.name));
+            }
             self.mob_index.insert(mob.name.clone(), i);
+            used_names.insert(mob.name.clone());
+        }
+        for spawn in self.raws.spawn_table.iter() {
+            if !used_names.contains(&spawn.name) {
+                rltk::console::log(format!("WARNING - Spawn tables references unspecified entity {}", spawn.name));
+            }
         }
     }
 
@@ -144,4 +158,22 @@ fn get_renderable_component(renderable: &super::Renderable) -> crate::Renderable
         bg : rltk::RGB::from_hex(&renderable.bg).expect("Invalid RGB"),
         render_order : renderable.order
     }
+}
+
+pub fn get_spawn_table_for_depth(raws: &RawMaster, depth: i32) -> RandomTable {
+    let available_options : Vec<&SpawnTableEntry> = raws.raws.spawn_table
+        .iter()
+        .filter(|a| depth >= a.min_depth && depth <= a.max_depth)
+        .collect();
+
+    let mut rt = RandomTable::new();
+    for e in available_options.iter() {
+        let mut weight = e.weight;
+        if e.add_map_depth_to_weight.is_some() {
+            weight += depth;
+        }
+        rt = rt.add(e.name.clone(), weight);
+    }
+
+    rt
 }

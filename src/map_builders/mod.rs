@@ -5,6 +5,7 @@ pub mod cellular_automata;
 pub mod drunkard;
 pub mod common;
 pub mod maze;
+pub mod dla;
 
 use super::{Map, Position, World};
 use self::simple_map::SimpleMapBuilder;
@@ -13,6 +14,7 @@ use self::bsp_interior::BspInteriorBuilder;
 use self::cellular_automata::CellularAutomataBuilder;
 use self::drunkard::{DrunkardsWalkBuilder, DrunkardSettings, DrunkSpawnMode};
 use self::maze::MazeBuilder;
+use crate::map_builders::dla::DLABuilder;
 
 pub trait MapBuilder {
     fn build_map(&mut self);
@@ -34,7 +36,10 @@ pub fn random_builder(new_depth : i32) -> Box<dyn MapBuilder> {
         5 => Box::new(DrunkardsWalkBuilder::open_halls(new_depth)),
         6 => Box::new(DrunkardsWalkBuilder::winding_passages(new_depth)),
         7 => Box::new(MazeBuilder::new(new_depth)),
+        8 => Box::new(DLABuilder::walk_inwards(new_depth)),
+        9 => Box::new(DLABuilder::walk_outwards(new_depth)),
+        10 => Box::new(DLABuilder::central_attractor(new_depth)),
+        11 => Box::new(DLABuilder::insectoid(new_depth)),
         _ => Box::new(SimpleMapBuilder::new(new_depth))
     }
-    Box::new(MazeBuilder::new(new_depth))
 }

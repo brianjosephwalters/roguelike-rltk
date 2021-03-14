@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use super::{ MapBuilder, Map, Position, 
+use super::{ MapBuilder, Map, Position,
     common::{ remove_unreachable_areas_returning_most_distant, generate_voronoi_spawn_regions }
 };
 use crate::{ SHOW_MAPGEN_VISUALIZER, TileType, spawner };
@@ -190,14 +190,6 @@ impl DrunkardsWalkBuilder {
         rltk::console::log(format!("{} dwarves gave up their sobriety, of whom {} actually found a wall.", digger_count, active_digger_count));
 
         // Find all tiles we can reach from the starting point
-        let map_starts : Vec<usize> = vec![start_index];
-        let dijkstra_map = rltk::DijkstraMap::new(
-            self.map.width,
-            self.map.height,
-            &map_starts,
-            &self.map,
-            200.0
-        );
         let exit_tile = remove_unreachable_areas_returning_most_distant(&mut self.map, start_index);
         self.take_snapshot();
 
@@ -207,7 +199,5 @@ impl DrunkardsWalkBuilder {
 
         // Now we build a noise map for use in spawning entities later
         self.noise_areas = generate_voronoi_spawn_regions(&self.map, &mut rng);
-
-
     }
 }

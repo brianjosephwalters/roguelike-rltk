@@ -7,6 +7,8 @@ use crate::{
 };
 use super::Map;
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum Symmetry { None, Horizontal, Vertical, Both }
 
 pub fn apply_room_to_map(map : &mut Map, room: &Rect) {
     for y in room.y1 + 1 ..= room.y2 {
@@ -90,3 +92,65 @@ pub fn generate_voronoi_spawn_regions(map: &Map, rng: &mut rltk::RandomNumberGen
     noise_areas
 }
 
+pub fn paint(map: &mut Map, mode: Symmetry, brush_size: i32, x: i32, y: i32) {
+    match mode {
+        Symmetry::None => apply_paint(map, brush_size, x, y),
+        Symmetry::Horizontal => {
+            let center_x = map.width / 2;
+            if x == center_x {
+                apply_paint(map, brush_size, x, y);
+            } else {
+                let dist_x = i32::abs(center_x - x);
+                apply_paint(map, brush_size, center_x + dist_x, y);
+                apply_paint(map, brush_size, center_x - dist_x, y);
+            }
+        }
+        Symmetry::Vertical => {
+            let center_y = map.height / 2;
+            if y == center_y {
+                apply_paint(map, brush_size, x, y);
+            } else {
+                let dist_y = i32::abs(center_y - y);
+                apply_paint(map, brush_size, x, center_y + dist_y);
+                apply_paint(map, brush_size, x, center_y - dist_y);
+            }
+        }
+        Symmetry::Both => {
+            let center_x = map.width / 2;
+            let center_y = map.height / 2;
+            if x == center_x && y == center_y {
+                apply_paint(map, brush_size, x, y);
+            } else {
+                let dist_x = i32::abs(center_x - x);
+                apply_paint(map, brush_size, center_x + dist_x, y);
+                apply_paint(map, brush_size, center_x - dist_x, y);
+                let dist_y = i32::abs(center_y - y);
+                apply_paint(map, brush_size, x, center_y + dist_y);
+                apply_paint(map, brush_size, x, center_y - dist_y);
+            }
+        }
+    }
+    let digger_index = map.xy_index(x, y);
+    map.tiles[digger_index] = TileType::Floor;
+}
+
+fn apply_paint(map: &mut Map, brush_size: i32, x: i32, y: i32) {
+    match brush_size {
+        1 => {
+            let digger_index = map.xy_index(x, y);
+            map.tiles[digger_index] = TileType::Floor;
+        }
+        _ => {
+            let half_brush_size = brush_size / 2;
+            for brush_y in y - half_brush_size .. y + half_brush_size {
+                for brush_x in x - half_brush_size .. y + half_brush_size {
+                    if brush_x > 1 && brush_x < map.width - 1 &&
+                        brush_y > 1 && brush_y < map.height - 1 {
+                        let index = map.xy_index(brush_x, brush_y);
+                        map.tiles[index] = TileType::Floor;
+                    }
+                }
+            }
+        }
+    }
+}

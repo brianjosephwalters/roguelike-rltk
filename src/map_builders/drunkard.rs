@@ -5,6 +5,7 @@ use super::{ MapBuilder, Map, Position,
 use crate::{ SHOW_MAPGEN_VISUALIZER, TileType, spawner };
 use specs::World;
 use rltk::RandomNumberGenerator;
+use crate::map_builders::common::{Symmetry, paint};
 
 pub enum DrunkSpawnMode { StartingPoint, Random }
 
@@ -12,6 +13,8 @@ pub struct DrunkardSettings {
     pub spawn_mode: DrunkSpawnMode,
     pub drunken_lifetime: i32,
     pub floor_percent: f32,
+    pub brush_size: i32,
+    pub symmetry: Symmetry
 }
 
 pub struct DrunkardsWalkBuilder {
@@ -80,7 +83,9 @@ impl DrunkardsWalkBuilder {
             settings : DrunkardSettings{
                 spawn_mode: DrunkSpawnMode::StartingPoint,
                 drunken_lifetime: 400,
-                floor_percent: 0.5
+                floor_percent: 0.5,
+                brush_size: 1,
+                symmetry: Symmetry::None
             }
         }
     }
@@ -95,7 +100,9 @@ impl DrunkardsWalkBuilder {
             settings : DrunkardSettings{
                 spawn_mode: DrunkSpawnMode::Random,
                 drunken_lifetime: 400,
-                floor_percent: 0.5
+                floor_percent: 0.5,
+                brush_size: 1,
+                symmetry: Symmetry::None
             }
         }
     }
@@ -110,7 +117,43 @@ impl DrunkardsWalkBuilder {
             settings : DrunkardSettings{
                 spawn_mode: DrunkSpawnMode::Random,
                 drunken_lifetime: 100,
-                floor_percent: 0.4
+                floor_percent: 0.4,
+                brush_size: 1,
+                symmetry: Symmetry::None
+            }
+        }
+    }
+
+    pub fn fat_passages(new_depth: i32) -> DrunkardsWalkBuilder {
+        DrunkardsWalkBuilder {
+            map: Map::new(new_depth),
+            starting_position: Position { x: 0, y: 0 },
+            depth: new_depth,
+            history: Vec::new(),
+            noise_areas: HashMap::new(),
+            settings: DrunkardSettings {
+                spawn_mode: DrunkSpawnMode::Random,
+                drunken_lifetime: 100,
+                floor_percent: 0.4,
+                brush_size: 2,
+                symmetry: Symmetry::None
+            }
+        }
+    }
+
+    pub fn fearful_symmetry(new_depth: i32) -> DrunkardsWalkBuilder {
+        DrunkardsWalkBuilder {
+            map: Map::new(new_depth),
+            starting_position: Position { x: 0, y: 0 },
+            depth: new_depth,
+            history: Vec::new(),
+            noise_areas: HashMap::new(),
+            settings: DrunkardSettings {
+                spawn_mode: DrunkSpawnMode::Random,
+                drunken_lifetime: 100,
+                floor_percent: 0.4,
+                brush_size: 1,
+                symmetry: Symmetry::Both,
             }
         }
     }

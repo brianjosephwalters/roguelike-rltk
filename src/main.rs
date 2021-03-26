@@ -53,6 +53,9 @@ pub mod saveload_system;
 pub mod map_builders;
 pub mod raws;
 
+pub mod rex_assets;
+use rex_assets::RexAssets;
+
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 
 #[derive(PartialEq, Copy, Clone)]
@@ -469,6 +472,7 @@ fn main() -> rltk::BError {
     
     gs.ecs.insert(RunState::MapGeneration{});
     gs.ecs.insert(gamelog::GameLog{ entries: vec!["Welcome to Rusty Roguelike!".to_string()]});
+    gs.ecs.insert(rex_assets::RexAssets::new());
 
     gs.generate_world_map(1);
 

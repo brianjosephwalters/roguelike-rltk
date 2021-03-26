@@ -6,6 +6,7 @@ use super::{
     InBackpack, State, Viewshed, RunState,
     Equipped
 };
+use crate::rex_assets::RexAssets;
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
     ctx.draw_box(0, 43, 79, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
@@ -278,6 +279,9 @@ pub enum MainMenuResult { NoSelection {selected: MainMenuSelection}, Selected {s
 pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
     let runstate = gs.ecs.fetch::<RunState>();
     let save_exists = super::saveload_system::does_save_exist();
+
+    let assets = gs.ecs.fetch::<RexAssets>();
+    ctx.render_xp_sprite(&assets.menu, 0, 0);
 
     ctx.print_color_centered(15, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Rust Roguelike Tutorial");
 

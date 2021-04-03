@@ -57,47 +57,45 @@ fn monster<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: FontCharType, na
 }
 
 #[allow(clippy::map_entry)]
-pub fn spawn_room(ecs: &mut World, room : &Rect, map_depth: i32) {
+pub fn spawn_room(map: &Map, rng: &mut RandomNumberGenerator, room: &Rect, map_depth: i32, spawn_list: &mut Vec<(usize, String)>) {
     let mut possible_targets : Vec<usize> = Vec::new();
     { // Borrow scope - to keep access to the map separated
-        let map = ecs.fetch::<Map>();
         for y in room.y1 + 1 .. room.y2 {
             for x in room.x1 + 1 .. room.x2 {
-                let idx = map.xy_index(x, y);
-                if map.tiles[idx] == TileType::Floor {
-                    possible_targets.push(idx);
+                let index = map.xy_index(x, y);
+                if map.tiles[index] == TileType::Floor {
+                    possible_targets.push(index);
                 }
             }
         }
     }
 
-    spawn_region(ecs, &possible_targets, map_depth);
+    spawn_region(map, rng, &possible_targets, map_depth, spawn_list);
 }
 
-pub fn spawn_region(ecs: &mut World, area: &[usize], map_depth: i32) {
+pub fn spawn_region(map: &Map, rng: &mut RandomNumberGenerator, area: &[usize], map_depth: i32, spawn_list: &mut Vec<(usize, String)>) {
     let spawn_table = room_table(map_depth);
     let mut spawn_points: HashMap<usize, String> = HashMap::new();
     let mut areas: Vec<usize> = Vec::from(area);
 
     {
-        let mut rng = ecs.write_resource::<RandomNumberGenerator>();
-        let num_spawns = i32::min(areas.len() as i32, rng.roll_dice(1, MAX_MONSTERS + 3) + (map_depth - 1) -3 );
-        if num_spawns == 0 {return};
+        let num_spawns = i32::min(areas.len() as i32, rng.roll_dice(1, MAX_MONSTERS + 3) + (map_depth - 1) - 3);
+        if num_spawns == 0 { return; }
 
         for _i in 0..num_spawns {
             let array_index = if areas.len() == 1 {0usize} else { (rng.roll_dice(1, areas.len() as i32) - 1) as usize };
             let map_index = areas[array_index];
-            spawn_points.insert(map_index, spawn_table.roll(&mut rng));
+            spawn_points.insert(map_index, spawn_table.roll(rng));
             areas.remove(array_index);
         }
     }
 
     for spawn in spawn_points.iter() {
-        spawn_entity(ecs, &spawn);
+        spawn_list.push((*spawn.0, spawn.1.to_string()));
     }
 }
 
-fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
+pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
     let map = ecs.fetch::<Map>();
     let width = map.width as usize;
     let x = (*spawn.0 % MAPWIDTH) as i32;

@@ -73,7 +73,7 @@ pub fn spawn_room(map: &Map, rng: &mut RandomNumberGenerator, room: &Rect, map_d
     spawn_region(map, rng, &possible_targets, map_depth, spawn_list);
 }
 
-pub fn spawn_region(map: &Map, rng: &mut RandomNumberGenerator, area: &[usize], map_depth: i32, spawn_list: &mut Vec<(usize, String)>) {
+pub fn spawn_region(_map: &Map, rng: &mut RandomNumberGenerator, area: &[usize], map_depth: i32, spawn_list: &mut Vec<(usize, String)>) {
     let spawn_table = room_table(map_depth);
     let mut spawn_points: HashMap<usize, String> = HashMap::new();
     let mut areas: Vec<usize> = Vec::from(area);
@@ -97,7 +97,7 @@ pub fn spawn_region(map: &Map, rng: &mut RandomNumberGenerator, area: &[usize], 
 
 pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
     let map = ecs.fetch::<Map>();
-    let width = map.width as usize;
+    let _width = map.width as usize;
     let x = (*spawn.0 % MAPWIDTH) as i32;
     let y = (*spawn.0 / MAPWIDTH) as i32;
     std::mem::drop(map);

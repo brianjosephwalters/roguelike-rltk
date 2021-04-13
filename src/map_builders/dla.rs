@@ -2,7 +2,7 @@ use super::{ Position, common::paint };
 use crate::TileType;
 use rltk::RandomNumberGenerator;
 use crate::map_builders::common::Symmetry;
-use crate::map_builders::{InitialMapBuilder, BuilderMap};
+use crate::map_builders::{InitialMapBuilder, BuilderMap, MetaMapBuilder};
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum DLAAlgorithm { WalkInwards, WalkOutwards, CentralAttractor }
@@ -20,6 +20,12 @@ impl InitialMapBuilder for DLABuilder {
     }
 }
 
+impl MetaMapBuilder for DLABuilder {
+    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data: &mut BuilderMap) {
+        self.build(rng, build_data);
+    }
+}
+
 impl DLABuilder {
 
     pub fn new() -> DLABuilder {
@@ -30,7 +36,6 @@ impl DLABuilder {
             floor_percent: 0.25,
         }
     }
-
 
     pub fn walk_inwards() -> Box<DLABuilder> {
         Box::new(DLABuilder {
@@ -65,6 +70,15 @@ impl DLABuilder {
             brush_size: 2,
             symmetry: Symmetry::Horizontal,
             floor_percent: 0.25,
+        })
+    }
+
+    pub fn heavy_erosion() -> Box<DLABuilder> {
+        Box::new(DLABuilder {
+            algorithm: DLAAlgorithm::WalkInwards,
+            brush_size: 2,
+            symmetry: Symmetry::None,
+            floor_percent: 0.35,
         })
     }
 

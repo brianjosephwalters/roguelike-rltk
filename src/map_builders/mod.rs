@@ -21,6 +21,7 @@ mod room_corner_rounding;
 mod room_cooridors_dogleg;
 mod room_corridors_bsp;
 mod room_sorter;
+mod room_draw;
 
 use super::{Map, Position, World};
 use self::simple_map::SimpleMapBuilder;
@@ -47,6 +48,7 @@ use crate::map_builders::room_corner_rounding::RoomCornerRounder;
 use crate::map_builders::room_cooridors_dogleg::DoglegCorridors;
 use crate::map_builders::room_corridors_bsp::BspCorridors;
 use crate::map_builders::room_sorter::{RoomSorter, RoomSort};
+use crate::map_builders::room_draw::RoomDrawer;
 
 pub struct BuilderMap {
     pub spawn_list: Vec<(usize, String)>,
@@ -173,6 +175,14 @@ pub fn random_builder(new_depth: i32, rng: &mut RandomNumberGenerator) -> Builde
 
     builder.with(PrefabBuilder::vaults());
 
+    // let mut builder = BuilderChain::new(new_depth);
+    // builder.start_with(SimpleMapBuilder::new());
+    // builder.with(RoomDrawer::new());
+    // builder.with(RoomSorter::new(RoomSort::LEFTMOST));
+    // builder.with(BspCorridors::new());
+    // builder.with(RoomBasedSpawner::new());
+    // builder.with(RoomBasedStairs::new());
+    // builder.with(RoomBasedStartingPosition::new());
     builder
 }
 
@@ -213,6 +223,8 @@ fn random_room_builder(rng: &mut RandomNumberGenerator, builder: &mut BuilderCha
             4 => builder.with(RoomSorter::new(RoomSort::BOTTOMMOST)),
             _ => builder.with(RoomSorter::new(RoomSort::CENTRAL)),
         }
+
+        builder.with(RoomDrawer::new());
 
         let corridor_roll = rng.roll_dice(1, 2);
         match corridor_roll {

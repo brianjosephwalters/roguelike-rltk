@@ -1,7 +1,6 @@
 use rltk::RandomNumberGenerator;
 use crate::Rect;
 use super::{
-    common::apply_room_to_map,
     common::apply_horizontal_tunnel,
     common::apply_vertical_tunnel,
 };
@@ -40,11 +39,7 @@ impl SimpleMapBuilder {
             }
             
             if ok {
-                apply_room_to_map(&mut build_data.map, &new_room);
-                build_data.take_snapshot();
-                
                 rooms.push(new_room);
-                build_data.take_snapshot();
             }
         }
         build_data.rooms = Some(rooms);

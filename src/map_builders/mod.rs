@@ -22,6 +22,9 @@ mod room_cooridors_dogleg;
 mod room_corridors_bsp;
 mod room_sorter;
 mod room_draw;
+mod rooms_corridors_nearest;
+mod rooms_corridors_lines;
+mod room_corridor_spawner;
 
 use super::{Map, Position, World};
 use self::simple_map::SimpleMapBuilder;
@@ -49,12 +52,16 @@ use crate::map_builders::room_cooridors_dogleg::DoglegCorridors;
 use crate::map_builders::room_corridors_bsp::BspCorridors;
 use crate::map_builders::room_sorter::{RoomSorter, RoomSort};
 use crate::map_builders::room_draw::RoomDrawer;
+use crate::map_builders::rooms_corridors_nearest::NearestCorridors;
+use crate::map_builders::rooms_corridors_lines::StraightLineCorridors;
+use crate::map_builders::room_corridor_spawner::CorridorSpawner;
 
 pub struct BuilderMap {
     pub spawn_list: Vec<(usize, String)>,
     pub map: Map,
     pub starting_position: Option<Position>,
     pub rooms: Option<Vec<Rect>>,
+    pub corridors: Option<Vec<Vec<usize>>>,
     pub history: Vec<Map>,
 }
 
@@ -86,6 +93,7 @@ impl BuilderChain {
                 map: Map::new(new_depth),
                 starting_position: None,
                 rooms: None,
+                corridors: None,
                 history: Vec::new(),
             }
         }
@@ -179,8 +187,9 @@ pub fn random_builder(new_depth: i32, rng: &mut RandomNumberGenerator) -> Builde
     // builder.start_with(SimpleMapBuilder::new());
     // builder.with(RoomDrawer::new());
     // builder.with(RoomSorter::new(RoomSort::LEFTMOST));
-    // builder.with(BspCorridors::new());
+    // builder.with(StraightLineCorridors::new());
     // builder.with(RoomBasedSpawner::new());
+    // builder.with(CorridorSpawner::new());
     // builder.with(RoomBasedStairs::new());
     // builder.with(RoomBasedStartingPosition::new());
     builder
@@ -226,10 +235,17 @@ fn random_room_builder(rng: &mut RandomNumberGenerator, builder: &mut BuilderCha
 
         builder.with(RoomDrawer::new());
 
-        let corridor_roll = rng.roll_dice(1, 2);
+        let corridor_roll = rng.roll_dice(1, 4);
         match corridor_roll {
             1 => builder.with(DoglegCorridors::new()),
+            2 => builder.with(NearestCorridors::new()),
+            3 => builder.with(StraightLineCorridors::new()),
             _ => builder.with(BspCorridors::new())
+        }
+
+        let cspawner_roll = rng.roll_dice(1, 2);
+        if cspawner_roll == 1 {
+            builder.with(CorridorSpawner::new());
         }
 
         let modifier_roll = rng.roll_dice(1, 6);

@@ -17,6 +17,7 @@ impl InitialMapBuilder for SimpleMapBuilder {
 impl SimpleMapBuilder {
 
     pub fn new() -> Box<SimpleMapBuilder> {
+        println!("SimpleMapBuilder");
         Box::new(SimpleMapBuilder{})
     }
 

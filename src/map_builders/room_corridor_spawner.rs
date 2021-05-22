@@ -12,6 +12,7 @@ impl MetaMapBuilder for CorridorSpawner {
 
 impl CorridorSpawner {
     pub fn new() -> Box<CorridorSpawner> {
+        println!("CorridorSpawner");
         Box::new(CorridorSpawner{})
     }
 

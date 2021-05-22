@@ -19,6 +19,7 @@ impl InitialMapBuilder for VoronoiCellBuilder {
 impl VoronoiCellBuilder {
 
     pub fn new() -> Box<VoronoiCellBuilder> {
+        println!("VoronoiCellBuilder");
         Box::new(VoronoiCellBuilder {
             n_seeds: 64,
             distance_algorithm: DistanceAlgorithm::Pythagoras,
@@ -26,6 +27,7 @@ impl VoronoiCellBuilder {
     }
 
     pub fn pythagoras() -> Box<VoronoiCellBuilder> {
+        println!("VoronoiCellBuilder::pythagoras()");
         Box::new(VoronoiCellBuilder {
             n_seeds: 64,
             distance_algorithm: DistanceAlgorithm::Pythagoras,
@@ -33,6 +35,7 @@ impl VoronoiCellBuilder {
     }
 
     pub fn manhattan() -> Box<VoronoiCellBuilder> {
+        println!("VoronoiCellBuilder::manhattan()");
         Box::new(VoronoiCellBuilder {
             n_seeds: 64,
             distance_algorithm: DistanceAlgorithm::Manhattan,

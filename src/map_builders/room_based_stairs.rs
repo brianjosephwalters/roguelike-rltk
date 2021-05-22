@@ -12,6 +12,7 @@ impl MetaMapBuilder for RoomBasedStairs {
 
 impl RoomBasedStairs {
     pub fn new() -> Box<RoomBasedStairs> {
+        println!("RoomBasedStairs");
         Box::new(RoomBasedStairs{})
     }
 

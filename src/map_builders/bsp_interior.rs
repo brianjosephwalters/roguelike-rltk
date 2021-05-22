@@ -19,6 +19,7 @@ impl InitialMapBuilder for BspInteriorBuilder {
 
 impl BspInteriorBuilder {
     pub fn new() -> Box<BspInteriorBuilder> {
+        println!("BspInteriorBuilder");
         Box::new(BspInteriorBuilder{
             rects: Vec::new(),
         })

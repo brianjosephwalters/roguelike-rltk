@@ -12,6 +12,7 @@ impl MetaMapBuilder for RoomBasedStartingPosition {
 
 impl RoomBasedStartingPosition {
     pub fn new() -> Box<RoomBasedStartingPosition> {
+        println!("RoomBasedStartingPosition");
         Box::new(RoomBasedStartingPosition{})
     }
 

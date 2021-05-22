@@ -2,7 +2,7 @@ use rltk::{RandomNumberGenerator, Point};
 use crate::map_builders::{MetaMapBuilder, BuilderMap};
 use crate::Rect;
 
-
+#[derive(Debug)]
 pub enum RoomSort { LEFTMOST, RIGHTMOST, TOPMOST, BOTTOMMOST, CENTRAL }
 
 pub struct RoomSorter {
@@ -17,6 +17,7 @@ impl MetaMapBuilder for RoomSorter {
 
 impl RoomSorter {
     pub fn new(sort_by: RoomSort) -> Box<RoomSorter> {
+        println!("RoomSorter: {:?}", sort_by);
         Box::new(RoomSorter{ sort_by })
     }
 

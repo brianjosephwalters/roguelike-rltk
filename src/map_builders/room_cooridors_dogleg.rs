@@ -13,6 +13,7 @@ impl MetaMapBuilder for DoglegCorridors {
 
 impl DoglegCorridors {
     pub fn new() -> Box<DoglegCorridors> {
+        println!("DoglegCorridors");
         Box::new(DoglegCorridors{})
     }
 

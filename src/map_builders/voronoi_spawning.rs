@@ -13,6 +13,7 @@ impl MetaMapBuilder for VoronoiSpawning {
 
 impl VoronoiSpawning {
     pub fn new() -> Box<VoronoiSpawning> {
+        println!("VoronoiSpawning");
         Box::new(VoronoiSpawning{})
     }
 

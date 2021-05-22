@@ -13,6 +13,7 @@ impl MetaMapBuilder for BspCorridors {
 
 impl BspCorridors {
     pub fn new() -> Box<BspCorridors> {
+        println!("BspCorridors");
         Box::new(BspCorridors{})
     }
 

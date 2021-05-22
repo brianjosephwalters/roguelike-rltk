@@ -13,6 +13,7 @@ impl InitialMapBuilder for MazeBuilder {
 
 impl MazeBuilder {
     pub fn new() -> Box<MazeBuilder> {
+        println!("MazeBuilder");
         Box::new(MazeBuilder{})
     }
 

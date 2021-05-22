@@ -29,6 +29,7 @@ impl MetaMapBuilder for DLABuilder {
 impl DLABuilder {
 
     pub fn new() -> DLABuilder {
+        println!("DLABuilder");
         DLABuilder {
             algorithm: DLAAlgorithm::WalkInwards,
             brush_size: 2,
@@ -38,6 +39,7 @@ impl DLABuilder {
     }
 
     pub fn walk_inwards() -> Box<DLABuilder> {
+        println!("DLABuilder::walk_inwards()");
         Box::new(DLABuilder {
             algorithm: DLAAlgorithm::WalkInwards,
             brush_size: 1,
@@ -47,6 +49,7 @@ impl DLABuilder {
     }
 
     pub fn walk_outwards() -> Box<DLABuilder> {
+        println!("DLABuilder::walk_outwards()");
         Box::new(DLABuilder {
             algorithm: DLAAlgorithm::WalkOutwards,
             brush_size: 2,
@@ -56,6 +59,7 @@ impl DLABuilder {
     }
 
     pub fn central_attractor() -> Box<DLABuilder> {
+        println!("DLABuilder::central_attractor()");
         Box::new(DLABuilder {
             algorithm: DLAAlgorithm::CentralAttractor,
             brush_size: 2,
@@ -65,6 +69,7 @@ impl DLABuilder {
     }
 
     pub fn insectoid() -> Box<DLABuilder> {
+        println!("DLABuilder::insectoid()");
         Box::new(DLABuilder {
             algorithm: DLAAlgorithm::CentralAttractor,
             brush_size: 2,
@@ -74,6 +79,7 @@ impl DLABuilder {
     }
 
     pub fn heavy_erosion() -> Box<DLABuilder> {
+        println!("DLABuilder::heavy_erosion()");
         Box::new(DLABuilder {
             algorithm: DLAAlgorithm::WalkInwards,
             brush_size: 2,

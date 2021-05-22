@@ -12,6 +12,7 @@ impl MetaMapBuilder for RoomCornerRounder {
 
 impl RoomCornerRounder {
     pub fn new() -> Box<RoomCornerRounder> {
+        println!("RoomCornerRounder");
         Box::new(RoomCornerRounder{})
     }
 

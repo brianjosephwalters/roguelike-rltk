@@ -12,6 +12,7 @@ impl MetaMapBuilder for DistantExit {
 
 impl DistantExit {
     pub fn new() -> Box<DistantExit> {
+        println!("DistantExit");
         Box::new(DistantExit{})
     }
 

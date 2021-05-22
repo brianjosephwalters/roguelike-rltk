@@ -12,6 +12,7 @@ impl MetaMapBuilder for RoomBasedSpawner {
 
 impl RoomBasedSpawner {
     pub fn new() -> Box<RoomBasedSpawner> {
+        println!("RoomBasedSpawner");
         Box::new(RoomBasedSpawner{})
     }
 

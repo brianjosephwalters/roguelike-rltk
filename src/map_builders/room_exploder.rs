@@ -13,6 +13,7 @@ impl MetaMapBuilder for RoomExploder {
 
 impl RoomExploder {
     pub fn new() -> Box<RoomExploder> {
+        println!("RoomExploder");
         Box::new(RoomExploder{})
     }
 

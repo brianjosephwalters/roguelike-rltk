@@ -14,6 +14,7 @@ impl MetaMapBuilder for NearestCorridors {
 
 impl NearestCorridors {
     pub fn new() -> Box<NearestCorridors> {
+        println!("NearestCorridors");
         Box::new(NearestCorridors{})
     }
 

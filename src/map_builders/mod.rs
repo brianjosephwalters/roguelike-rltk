@@ -229,6 +229,7 @@ fn random_start_position(rng: &mut rltk::RandomNumberGenerator) -> (XStart, YSta
 }
 
 fn random_room_builder(rng: &mut RandomNumberGenerator, builder: &mut BuilderChain) {
+    println!("Random Room Builder Path:");
     let build_room = rng.roll_dice(1, 3);
     match build_room {
         1 => builder.start_with(SimpleMapBuilder::new()),
@@ -292,6 +293,7 @@ fn random_room_builder(rng: &mut RandomNumberGenerator, builder: &mut BuilderCha
 }
 
 fn random_shape_builder(rng: &mut RandomNumberGenerator, builder: &mut BuilderChain) {
+    println!("Random Shape Builder Path:");
     let builder_roll = rng.roll_dice(1, 16);
     match builder_roll {
         1 => builder.start_with(CellularAutomataBuilder::new()),

@@ -35,6 +35,7 @@ impl InitialMapBuilder for PrefabBuilder {
 impl PrefabBuilder {
     #[allow(dead_code)]
     pub fn new() -> Box<PrefabBuilder> {
+        println!("PrefabBuilder");
         Box::new(PrefabBuilder{
             mode : PrefabMode::RoomVaults,
         })
@@ -42,6 +43,7 @@ impl PrefabBuilder {
 
     #[allow(dead_code)]
     pub fn rex_level(template : &'static str) -> Box<PrefabBuilder> {
+        println!("PrefabBuilder::rex_level() {}", &template);
         Box::new(PrefabBuilder {
             mode : PrefabMode::RexLevel{ template },
         })
@@ -49,6 +51,7 @@ impl PrefabBuilder {
 
     #[allow(dead_code)]
     pub fn constant(level : prefab_levels::PrefabLevel) -> Box<PrefabBuilder> {
+        println!("PrefabBuilder::constant() {}", &level.template);
         Box::new(PrefabBuilder {
             mode : PrefabMode::Constant{ level },
         })
@@ -56,6 +59,7 @@ impl PrefabBuilder {
 
     #[allow(dead_code)]
     pub fn sectional(section : prefab_sections::PrefabSection) -> Box<PrefabBuilder> {
+        println!("PrefabBuilder::sectional() {}", &section.template);
         Box::new(PrefabBuilder {
             mode : PrefabMode::Sectional{ section },
         })
@@ -63,6 +67,7 @@ impl PrefabBuilder {
 
     #[allow(dead_code)]
     pub fn vaults() -> Box<PrefabBuilder> {
+        println!("PrefabBuilder::vaults()");
         Box::new(PrefabBuilder {
             mode : PrefabMode::RoomVaults,
         })

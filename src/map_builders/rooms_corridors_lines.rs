@@ -13,6 +13,7 @@ impl MetaMapBuilder for StraightLineCorridors {
 
 impl StraightLineCorridors {
     pub fn new() -> Box<StraightLineCorridors> {
+        println!("StraightLineCorridors");
         Box::new(StraightLineCorridors{})
     }
 

@@ -32,12 +32,14 @@ impl MetaMapBuilder for DrunkardsWalkBuilder {
 
 impl DrunkardsWalkBuilder {
     pub fn new(settings: DrunkardSettings) -> DrunkardsWalkBuilder {
+        println!("DrunkardsWalkBuilder");
         DrunkardsWalkBuilder {
             settings,
         }
     }
 
     pub fn open_area() -> Box<DrunkardsWalkBuilder> {
+        println!("DrunkardsWalkBuilder::open_area()");
         Box::new(DrunkardsWalkBuilder{
             settings : DrunkardSettings{
                 spawn_mode: DrunkSpawnMode::StartingPoint,
@@ -50,6 +52,7 @@ impl DrunkardsWalkBuilder {
     }
 
     pub fn open_halls() -> Box<DrunkardsWalkBuilder> {
+        println!("DrunkardsWalkBuilder::open_halls()");
         Box::new(DrunkardsWalkBuilder{
             settings : DrunkardSettings{
                 spawn_mode: DrunkSpawnMode::Random,
@@ -62,6 +65,7 @@ impl DrunkardsWalkBuilder {
     }
 
     pub fn winding_passages() -> Box<DrunkardsWalkBuilder> {
+        println!("DrunkardsWalkBuilder::winding_passages()");
         Box::new(DrunkardsWalkBuilder{
             settings : DrunkardSettings{
                 spawn_mode: DrunkSpawnMode::Random,
@@ -74,6 +78,7 @@ impl DrunkardsWalkBuilder {
     }
 
     pub fn fat_passages() -> Box<DrunkardsWalkBuilder> {
+        println!("DrunkardsWalkBuilder::fat_passages()");
         Box::new(DrunkardsWalkBuilder {
             settings: DrunkardSettings {
                 spawn_mode: DrunkSpawnMode::Random,
@@ -86,6 +91,7 @@ impl DrunkardsWalkBuilder {
     }
 
     pub fn fearful_symmetry() -> Box<DrunkardsWalkBuilder> {
+        println!("DrunkardsWalkBuilder::fearful_symmetry()");
         Box::new(DrunkardsWalkBuilder {
             settings: DrunkardSettings {
                 spawn_mode: DrunkSpawnMode::Random,

@@ -18,6 +18,7 @@ impl MetaMapBuilder for AreaStartingPosition {
 
 impl AreaStartingPosition {
     pub fn new(x: XStart, y: YStart) -> Box<AreaStartingPosition> {
+        println!("AreaStartingPosition");
         Box::new(AreaStartingPosition{
             x, y
         })

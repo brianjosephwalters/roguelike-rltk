@@ -18,6 +18,7 @@ impl MetaMapBuilder for CellularAutomataBuilder {
 
 impl CellularAutomataBuilder {
     pub fn new() -> Box<CellularAutomataBuilder> {
+        println!("CellularAutomataBuilder");
         Box::new(CellularAutomataBuilder {})
     }
 

@@ -54,6 +54,7 @@ pub mod map_builders;
 pub mod raws;
 
 pub mod rex_assets;
+pub mod camera;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 
@@ -201,7 +202,7 @@ impl State {
         self.mapgen_history.clear();
 
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        let mut builder = map_builders::random_builder(depth, &mut rng);
+        let mut builder = map_builders::random_builder(depth, &mut rng, 80, 50);
         builder.build_map(&mut rng);
         // Stops the borrow on rng (and on self)
         std::mem::drop(rng);
@@ -250,24 +251,8 @@ impl GameState for State {
         match newrunstate {
             RunState::MainMenu{ .. } => { }
             _ => {
-                draw_map(&self.ecs.fetch::<Map>(), ctx);
-
-                {
-                    let positions = self.ecs.read_storage::<Position>();
-                    let renderables = self.ecs.read_storage::<Renderable>();
-                    let map = self.ecs.fetch::<Map>();
-    
-                    let mut data = (&positions, &renderables).join().collect::<Vec<_>>();
-                    data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order) );
-                    for (pos, render) in data.iter() {
-                        let index = map.xy_index(pos.x, pos.y);
-                        if map.visible_tiles[index] {
-                            ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
-                        }
-                    }
-                    gui::draw_ui(&self.ecs, ctx);
-                }
-                
+                camera::render_camera(&self.ecs, ctx);
+                gui::draw_ui(&self.ecs, ctx);
             }
         }
 
@@ -277,9 +262,10 @@ impl GameState for State {
                     newrunstate = self.mapgen_next_state.unwrap();
                 }
                 ctx.cls();
-                draw_map(&self.mapgen_history[self.mapgen_index], ctx);
+                if self.mapgen_index < self.mapgen_history.len() { camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx); }                self.mapgen_timer += ctx.frame_time_ms;
+
                 self.mapgen_timer += ctx.frame_time_ms;
-                if self.mapgen_timer > 300.0 {
+                if self.mapgen_timer > 200.0 {
                     self.mapgen_timer = 0.0;
                     self.mapgen_index += 1;
                     if self.mapgen_index >= self.mapgen_history.len() {
@@ -468,7 +454,7 @@ fn main() -> rltk::BError {
 
     raws::load_raws();
 
-    gs.ecs.insert(Map::new(1));
+    gs.ecs.insert(Map::new(1, 64, 64));
     gs.ecs.insert(Point::new(0, 0));
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 

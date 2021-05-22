@@ -13,7 +13,6 @@ use super::{
     RandomTable, Equippable, EquipmentSlot, MeleePowerBonus, DefenseBonus,
     raws::*
 };
-use super::MAPWIDTH;
 
 const MAX_MONSTERS: i32 = 4;
 
@@ -97,9 +96,9 @@ pub fn spawn_region(_map: &Map, rng: &mut RandomNumberGenerator, area: &[usize],
 
 pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
     let map = ecs.fetch::<Map>();
-    let _width = map.width as usize;
-    let x = (*spawn.0 % MAPWIDTH) as i32;
-    let y = (*spawn.0 / MAPWIDTH) as i32;
+    let width = map.width as usize;
+    let x = (*spawn.0 % width) as i32;
+    let y = (*spawn.0 / width) as i32;
     std::mem::drop(map);
 
     let spawn_result = spawn_named_entity(

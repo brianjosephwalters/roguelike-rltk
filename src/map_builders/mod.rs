@@ -65,6 +65,8 @@ pub struct BuilderMap {
     pub rooms: Option<Vec<Rect>>,
     pub corridors: Option<Vec<Vec<usize>>>,
     pub history: Vec<Map>,
+    pub width: i32,
+    pub height: i32
 }
 
 impl BuilderMap {
@@ -86,17 +88,19 @@ pub struct BuilderChain {
 }
 
 impl BuilderChain {
-    pub fn new(new_depth: i32) -> BuilderChain {
+    pub fn new(new_depth: i32, width: i32, height: i32) -> BuilderChain {
         BuilderChain {
             starter: None,
             builders: Vec::new(),
             build_data: BuilderMap {
                 spawn_list: Vec::new(),
-                map: Map::new(new_depth),
+                map: Map::new(new_depth, width, height),
                 starting_position: None,
                 rooms: None,
                 corridors: None,
                 history: Vec::new(),
+                width,
+                height
             }
         }
     }
@@ -167,8 +171,8 @@ fn random_initial_builder(rng: &mut RandomNumberGenerator) -> (Box<dyn InitialMa
     result
 }
 
-pub fn random_builder(new_depth: i32, rng: &mut RandomNumberGenerator) -> BuilderChain {
-    let mut builder = BuilderChain::new(new_depth);
+pub fn random_builder(new_depth: i32, rng: &mut RandomNumberGenerator, width: i32, height: i32) -> BuilderChain {
+    let mut builder = BuilderChain::new(new_depth, width, height);
     let type_roll = rng.roll_dice(1, 2);
     match type_roll {
         1 => random_room_builder(rng, &mut builder),

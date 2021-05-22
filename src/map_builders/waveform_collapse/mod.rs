@@ -33,7 +33,7 @@ impl WaveformCollapseBuilder {
         self.render_tile_gallery(&constraints, CHUNK_SIZE, build_data);
 
         // Solver
-        build_data.map = Map::new(build_data.map.depth);
+        build_data.map = Map::new(build_data.map.depth, build_data.map.width, build_data.map.height);
         loop {
             let mut solver = Solver::new(constraints.clone(), CHUNK_SIZE, &build_data.map);
             while !solver.iteration(&mut build_data.map, rng) {
@@ -45,7 +45,7 @@ impl WaveformCollapseBuilder {
     }
 
     fn render_tile_gallery(&mut self, constraints: &Vec<MapChunk>, chunk_size: i32, build_data : &mut BuilderMap) {
-        build_data.map = Map::new(0);
+        build_data.map = Map::new(0, build_data.width, build_data.height);
         let mut counter = 0;
         let mut x = 1;
         let mut y = 1;
@@ -62,7 +62,7 @@ impl WaveformCollapseBuilder {
                 if y + chunk_size > build_data.map.height {
                     // Move to the next page
                     build_data.take_snapshot();
-                    build_data.map = Map::new(0);
+                    build_data.map = Map::new(0, build_data.width, build_data.height);
                     x = 1;
                     y = 1;
                 }

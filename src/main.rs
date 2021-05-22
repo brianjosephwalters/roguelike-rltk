@@ -460,6 +460,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<MeleePowerBonus>();
     gs.ecs.register::<DefenseBonus>();
     gs.ecs.register::<WantsToRemoveItem>();
+    gs.ecs.register::<BlocksVisibility>();
+    gs.ecs.register::<Door>();
+    gs.ecs.register::<Hidden>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

@@ -158,3 +158,14 @@ pub struct DefenseBonus {
 pub struct WantsToRemoveItem {
     pub item : Entity
 }
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct BlocksVisibility {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Door {
+    pub open: bool
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Hidden {}

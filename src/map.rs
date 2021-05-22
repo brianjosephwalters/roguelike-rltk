@@ -1,6 +1,7 @@
 use rltk::{ RGB, Rltk, Algorithm2D, BaseMap, Point, SmallVec};
 use specs::prelude::*;
 use serde::{Serialize, Deserialize};
+use std::collections::HashSet;
 
 pub const MAPWIDTH: usize = 80;
 pub const MAPHEIGHT: usize = 43;
@@ -20,6 +21,7 @@ pub struct Map {
     pub visible_tiles: Vec<bool>,
     pub blocked: Vec<bool>,
     pub depth: i32,
+    pub view_blocked: HashSet<usize>,
 
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
@@ -38,7 +40,8 @@ impl Map {
             visible_tiles : vec![false; MAPCOUNT],
             blocked : vec![false; MAPCOUNT],
             tile_content : vec![Vec::new(); MAPCOUNT],
-            depth: new_depth
+            depth: new_depth,
+            view_blocked: HashSet::new(),
         }
     }
 
@@ -74,7 +77,7 @@ impl Algorithm2D for Map {
 
 impl BaseMap for Map {
     fn is_opaque(&self, index:usize) -> bool {
-        self.tiles[index as usize] == TileType::Wall
+        self.tiles[index as usize] == TileType::Wall || self.view_blocked.contains(&index)
     }
 
     fn get_available_exits(&self, index: usize) -> SmallVec<[(usize, f32); 10]> {

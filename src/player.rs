@@ -1,6 +1,6 @@
 use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
-use crate::TileType;
+use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable};
 
 use super::{CombatStats, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster};
 use std::cmp::{min, max};
@@ -14,8 +14,18 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let entities = ecs.entities();
     let combat_stats = ecs.read_storage::<CombatStats>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
+    let mut doors = ecs.write_storage::<Door>();
+    let mut blocks_visibility = ecs.write_storage::<BlocksVisibility>();
+    let mut blocks_movement = ecs.write_storage::<BlocksTile>();
+    let mut renderables = ecs.write_storage::<Renderable>();
 
     for (entity, _player, pos, viewshed) in (&entities, &mut players, &mut positions, &mut viewsheds).join() {
+        if pos.x + delta_x < 1 ||
+            pos.x + delta_x > map.width - 1 ||
+            pos.y + delta_y < 1 ||
+            pos.y + delta_y > map.height - 1 {
+            return;
+        }
         let destination_index = map.xy_index(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[destination_index].iter() {
@@ -23,6 +33,16 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             if let Some(_target) = target {
                 wants_to_melee.insert(entity, WantsToMelee{ target: *potential_target}).expect("Add target failed!");
                 // SufferDamage::new_damage(&mut inflict_damage, wants_to_melee.target, damage);
+                return;
+            }
+            let door = doors.get_mut(*potential_target);
+            if let Some(door) = door {
+                door.open = true;
+                blocks_visibility.remove(*potential_target);
+                blocks_movement.remove(*potential_target);
+                let glyph = renderables.get_mut(*potential_target).unwrap();
+                glyph.glyph = rltk::to_cp437('/');
+                viewshed.dirty = true;
             }
         }
         if !map.blocked[destination_index] {

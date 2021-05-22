@@ -6,11 +6,11 @@ use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator, SerializeComponents, DeserializeComponents, MarkedBuilder};
 use specs::error::NoError;
 
-use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, BlocksTile, 
-    CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
-    AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-    WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
-    WantsToRemoveItem };
+use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, BlocksTile,
+            CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
+            AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
+            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden};
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -43,7 +43,7 @@ pub fn save_game(ecs: &mut World) {
             CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equipped, MeleePowerBonus, DefenseBonus,
-            WantsToRemoveItem
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
@@ -91,10 +91,12 @@ pub fn load_game(ecs: &mut World) {
             &mut ecs.write_resource::<SimpleMarkerAllocator<SerializeMe>>()
         );
 
-        deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Monster, 
-            Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
+        deserialize_individually!(ecs, de, d,
+            Position, Renderable, Player, Viewshed, Monster, Name, BlocksTile,
+            CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus);
+            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden);
     }
 
     let mut deleteme: Option<Entity> = None;

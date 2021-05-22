@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rltk::{ RGB, RandomNumberGenerator, FontCharType };
 use specs::prelude::*;
 use specs::saveload::{MarkedBuilder, SimpleMarker};
-use crate::{Map, TileType, raws::get_spawn_table_for_depth};
+use crate::{Map, TileType, raws::get_spawn_table_for_depth, BlocksVisibility, Door};
 
 use super::{
     CombatStats, Player, Renderable, 
@@ -125,6 +125,7 @@ pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
         "Shield" => shield(ecs, x, y),
         "Longsword" => longsword(ecs, x, y),
         "Tower Shield" => tower_shield(ecs, x, y),
+        "Door" => door(ecs, x, y),
         _ => {}
     }
 }
@@ -265,6 +266,23 @@ fn tower_shield(ecs: &mut World, x: i32, y: i32) {
         .with(Item{})
         .with(Equippable{ slot: EquipmentSlot::Shield })
         .with(DefenseBonus{ defense: 3 })
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+}
+
+fn door(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position {x, y})
+        .with(Renderable {
+            glyph: rltk::to_cp437('+'),
+            fg: RGB::named(rltk::CHOCOLATE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name{ name: "Door".to_string() })
+        .with(BlocksTile {})
+        .with(BlocksVisibility {})
+        .with(Door{open:false})
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }

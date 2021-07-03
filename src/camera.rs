@@ -7,7 +7,8 @@ const SHOW_BOUNDARIES: bool = true;
 pub fn get_screen_bounds(ecs: &World, ctx: &mut Rltk) -> (i32, i32, i32, i32) {
     let player_pos = ecs.fetch::<Point>();
     let (x_chars, y_chars) = ctx.get_char_size();
-
+    // println!("Player Position: {} {}", player_pos.x, player_pos.y);
+    // println!("Screen Size: {} {}", x_chars, y_chars);
     let center_x = (x_chars / 2) as i32;
     let center_y = (y_chars / 2) as i32;
 
@@ -22,7 +23,10 @@ pub fn get_screen_bounds(ecs: &World, ctx: &mut Rltk) -> (i32, i32, i32, i32) {
 pub fn render_camera(ecs: &World, ctx: &mut Rltk) {
     let map = ecs.fetch::<Map>();
     let (min_x, max_x, min_y, max_y) = get_screen_bounds(ecs, ctx);
+    // println!("{} {} {} {}", min_x, max_x, min_y, max_y);
+    // println!("Map Size: {} {}", map.width, map.height);
 
+    // Render Map
     let map_width = map.width - 1;
     let map_height = map.height - 1;
 
@@ -44,6 +48,7 @@ pub fn render_camera(ecs: &World, ctx: &mut Rltk) {
         y += 1;
     }
 
+    // Render Entities
     let positions = ecs.read_storage::<Position>();
     let renderables = ecs.read_storage::<Renderable>();
     let hidden = ecs.read_storage::<Hidden>();
@@ -56,7 +61,7 @@ pub fn render_camera(ecs: &World, ctx: &mut Rltk) {
         if map.visible_tiles[index] {
             let entity_screen_x = pos.x - min_x;
             let entity_screen_y = pos.y - min_y;
-            if entity_screen_x > 0 && entity_screen_x < map_width && entity_screen_y < 0 && entity_screen_y < map_height {
+            if entity_screen_x > 0 && entity_screen_x < map_width && entity_screen_y > 0 && entity_screen_y < map_height {
                 ctx.set(entity_screen_x, entity_screen_y, render.fg, render.bg, render.glyph);
             }
         }
@@ -75,8 +80,8 @@ pub fn render_debug_map(map: &Map, ctx: &mut Rltk) {
     let min_y = player_pos.y - center_y;
     let max_y = min_y + y_chars as i32;
 
-    let map_width = map.width-1;
-    let map_height = map.height-1;
+    let map_width = map.width - 1;
+    let map_height = map.height - 1;
 
     let mut y = 0;
     for ty in min_y .. max_y {
@@ -111,7 +116,7 @@ fn get_tile_glyph(index: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
             let x = index as i32 % map.width;
             let y = index as i32 / map.width;
             glyph = wall_glyph(&*map, x, y);
-            fg = RGB::from_f32(0., 1.0, 1.0);
+            fg = RGB::from_f32(0., 1.0, 0.);
         }
         TileType::DownStairs => {
             glyph = rltk::to_cp437('>');
@@ -154,7 +159,6 @@ fn wall_glyph(map: &Map, x: i32, y: i32) -> rltk::FontCharType {
         15 => { 206 }  // ╬ Wall on all sides
         _ => { 35 } // We missed one?
     }
-
 }
 
 fn is_revealed_and_wall(map: &Map, x: i32, y: i32) -> bool {

@@ -105,7 +105,7 @@ pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
         &RAWS.lock().unwrap(), 
         ecs.create_entity(), 
         &spawn.1, 
-        SpawnType::AtPosition{ x, y}
+        SpawnType::AtPosition{ x, y }
     );
     if spawn_result.is_some() {
         return;

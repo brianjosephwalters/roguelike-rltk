@@ -57,6 +57,8 @@ pub mod rex_assets;
 pub mod camera;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
+const MAP_WIDTH: i32 = 80;
+const MAP_HEIGHT: i32 = 50;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { 
@@ -202,10 +204,10 @@ impl State {
         self.mapgen_history.clear();
 
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        let mut builder = map_builders::random_builder(depth, &mut rng, 80, 50);
+        let mut width: i32 = MAP_WIDTH;
+        let mut height: i32 = MAP_HEIGHT;
+        let mut builder = map_builders::random_builder(depth, &mut rng, width, height);
         builder.build_map(&mut rng);
-        // Stops the borrow on rng (and on self)
-        std::mem::drop(rng);
         self.mapgen_history = builder.build_data.history.clone();
         let player_start;
         {
@@ -213,7 +215,10 @@ impl State {
             *worldmap_resource = builder.build_data.map.clone();
             player_start = builder.build_data.starting_position.as_mut().unwrap().clone();
         }
-        
+
+        // Stops the borrow on rng (and on self)
+        std::mem::drop(rng);
+
         // Spawn bad guys
         builder.spawn_entities(&mut self.ecs);
         
@@ -260,16 +265,19 @@ impl GameState for State {
             RunState::MapGeneration =>  {
                 if !SHOW_MAPGEN_VISUALIZER {
                     newrunstate = self.mapgen_next_state.unwrap();
-                }
-                ctx.cls();
-                if self.mapgen_index < self.mapgen_history.len() { camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx); }                self.mapgen_timer += ctx.frame_time_ms;
+                } else {
+                    ctx.cls();
+                    if self.mapgen_index < self.mapgen_history.len() {
+                        camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx);
+                    }
 
-                self.mapgen_timer += ctx.frame_time_ms;
-                if self.mapgen_timer > 200.0 {
-                    self.mapgen_timer = 0.0;
-                    self.mapgen_index += 1;
-                    if self.mapgen_index >= self.mapgen_history.len() {
-                        newrunstate = self.mapgen_next_state.unwrap();
+                    self.mapgen_timer += ctx.frame_time_ms;
+                    if self.mapgen_timer > 200.0 {
+                        self.mapgen_timer = 0.0;
+                        self.mapgen_index += 1;
+                        if self.mapgen_index >= self.mapgen_history.len() {
+                            newrunstate = self.mapgen_next_state.unwrap();
+                        }
                     }
                 }
             },
@@ -377,7 +385,8 @@ impl GameState for State {
             }
             RunState::NextLevel => {
                 self.goto_next_level();
-                newrunstate = RunState::PreRun;
+                self.mapgen_next_state = Some(RunState::PreRun);
+                newrunstate = RunState::MapGeneration;
             }
             RunState::GameOver => {
                 let result = gui::game_over(ctx);
@@ -449,12 +458,13 @@ fn main() -> rltk::BError {
     gs.ecs.register::<BlocksVisibility>();
     gs.ecs.register::<Door>();
     gs.ecs.register::<Hidden>();
+    gs.ecs.register::<EntityMoved>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
     raws::load_raws();
 
-    gs.ecs.insert(Map::new(1, 64, 64));
+    gs.ecs.insert(Map::new(1, MAP_WIDTH, MAP_HEIGHT));
     gs.ecs.insert(Point::new(0, 0));
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 

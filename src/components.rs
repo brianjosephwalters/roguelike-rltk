@@ -169,3 +169,6 @@ pub struct Door {
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Hidden {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct EntityMoved {}

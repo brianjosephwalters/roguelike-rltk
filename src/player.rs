@@ -2,7 +2,7 @@ use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
 use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable};
 
-use super::{CombatStats, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster};
+use super::{CombatStats, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster, EntityMoved};
 use std::cmp::{min, max};
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
@@ -14,6 +14,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let entities = ecs.entities();
     let combat_stats = ecs.read_storage::<CombatStats>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
+    let mut entity_moved = ecs.write_storage::<EntityMoved>();
     let mut doors = ecs.write_storage::<Door>();
     let mut blocks_visibility = ecs.write_storage::<BlocksVisibility>();
     let mut blocks_movement = ecs.write_storage::<BlocksTile>();
@@ -32,7 +33,6 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             let target = combat_stats.get(*potential_target);
             if let Some(_target) = target {
                 wants_to_melee.insert(entity, WantsToMelee{ target: *potential_target}).expect("Add target failed!");
-                // SufferDamage::new_damage(&mut inflict_damage, wants_to_melee.target, damage);
                 return;
             }
             let door = doors.get_mut(*potential_target);
@@ -48,9 +48,11 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
         if !map.blocked[destination_index] {
             pos.x = min(map.width - 1, max(0, pos.x + delta_x));
             pos.y = min(map.height - 1, max(0, pos.y + delta_y));
+            entity_moved.insert(entity, EntityMoved{}).expect("Unable to insert marker");
+
+            viewshed.dirty = true;
             ppos.x = pos.x;
             ppos.y = pos.y;
-            viewshed.dirty = true;
         }
     }
 }

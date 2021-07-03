@@ -26,6 +26,9 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
         ctx.draw_bar_horizontal(28, 43, 51, stats.hp, stats.max_hp, RGB::named(rltk::RED), RGB::named(rltk::BLACK));
     }
 
+    let depth = format!("Depth: {}", map.depth);
+    ctx.print_color(2, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
+
     let mut y = 44;
     for s in log.entries.iter().rev() {
         if y < 49 { ctx.print(2, y, s); }
@@ -35,6 +38,9 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
     let mouse_pos = ctx.mouse_pos();
     ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::MAGENTA));
     draw_tooltips(ecs, ctx);
+
+    let player_position = ecs.fetch::<rltk::Point>();
+    ctx.print(0, 0, &format!("{}, {}", player_position.x, player_position.y));
 }
 
 fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {
@@ -122,7 +128,8 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Option
     let mut equippable: Vec<Entity> = Vec::new();
     let mut j = 0;
     for (entity, _pack, name) in (&entities, &backpack, &names).join().filter(|item| item.1.owner == *player_entity ) {        ctx.set(17, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set(18, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as u8);
+        ctx.set(17, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
+        ctx.set(18, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97+j as rltk::FontCharType);
         ctx.set(19, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
 
         ctx.print(21, y, &name.name.to_string());

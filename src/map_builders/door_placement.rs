@@ -31,7 +31,8 @@ impl DoorPlacement {
             for (i, tile) in tiles.iter().enumerate() {
                 if *tile == TileType::Floor &&
                     self.door_possible(build_data, i) &&
-                    rng.roll_dice(1,3) == 1 {
+                    rng.roll_dice(1,3) == 1
+                {
                     build_data.spawn_list.push((i, "Door".to_string()));
                 }
             }
@@ -45,24 +46,26 @@ impl DoorPlacement {
         }
         if blocked { return false; }
 
-        let x = index % build_data.map.width as usize;
-        let y = index / build_data.map.width as usize;
+        let x = (index % build_data.map.width as usize) as i32;
+        let y = (index / build_data.map.width as usize) as i32;
 
         // Check for east-west door possibility
         if build_data.map.tiles[index] == TileType::Floor &&
             (x > 1 && build_data.map.tiles[index - 1] == TileType::Floor) &&
-            (x < (build_data.map.width - 2) as usize && build_data.map.tiles[index + 1] == TileType::Floor) &&
+            (x < (build_data.map.width - 2) && build_data.map.tiles[index + 1] == TileType::Floor) &&
             (y > 1 && build_data.map.tiles[index - build_data.map.width as usize] == TileType::Wall) &&
-            (y < (build_data.map.height - 2) as usize && build_data.map.tiles[index + build_data.map.width as usize] == TileType::Wall) {
+            (y < (build_data.map.height - 2) && build_data.map.tiles[index + build_data.map.width as usize] == TileType::Wall)
+        {
             return true;
         }
 
         // Check for north-south door possibility
         if build_data.map.tiles[index] == TileType::Floor &&
             (x > 1 && build_data.map.tiles[index - 1] == TileType::Wall) &&
-            (x < (build_data.map.width - 2) as usize && build_data.map.tiles[index + 1] == TileType::Wall) &&
+            (x < (build_data.map.width - 2) && build_data.map.tiles[index + 1] == TileType::Wall) &&
             (y > 1 && build_data.map.tiles[index - build_data.map.width as usize] == TileType::Floor) &&
-            (y < (build_data.map.height - 2) as usize && build_data.map.tiles[index + build_data.map.width as usize] == TileType::Floor) {
+            (y < (build_data.map.height - 2) && build_data.map.tiles[index + build_data.map.width as usize] == TileType::Floor)
+        {
             return true;
         }
 

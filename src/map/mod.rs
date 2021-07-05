@@ -1,12 +1,13 @@
-use rltk::{ RGB, Rltk, Algorithm2D, BaseMap, Point, SmallVec};
+
+use rltk::{RGB, Rltk, Algorithm2D, BaseMap, Point, SmallVec};
 use specs::prelude::*;
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
+use specs::Entity;
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Serialize, Deserialize, Debug)]
-pub enum TileType {
-    Wall, Floor, DownStairs
-}
+mod tiletype;
+pub use tiletype::{TileType, tile_walkable, tile_opaque};
+use crate::map::tiletype::tile_cost;
 
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Map {
@@ -54,7 +55,7 @@ impl Map {
 
     pub fn populate_blocked(&mut self) {
         for (i, tile) in self.tiles.iter_mut().enumerate() {
-            self.blocked[i] = *tile == TileType::Wall;
+            self.blocked[i] = !tile_walkable(*tile)
         }
     }
 
@@ -75,7 +76,7 @@ impl Algorithm2D for Map {
 impl BaseMap for Map {
     fn is_opaque(&self, index: usize) -> bool {
         if index > 0 && index < self.tiles.len() {
-            self.tiles[index] == TileType::Wall || self.view_blocked.contains(&index)
+            tile_opaque(self.tiles[index]) || self.view_blocked.contains(&index)
         } else {
             true
         }
@@ -88,18 +89,20 @@ impl BaseMap for Map {
         let y = index as i32 / self.width;
         let w = self.width as usize;
 
+        let tt = self.tiles[index as usize];
+
         //Cardinal Directions
-        if self.is_exit_valid(x-1, y) { exits.push((index-1, 1.0)) };
-        if self.is_exit_valid(x+1, y) { exits.push((index+1, 1.0)) };
-        if self.is_exit_valid(x, y-1) { exits.push((index-w, 1.0)) };
-        if self.is_exit_valid(x, y+1) { exits.push((index+w, 1.0)) };
+        if self.is_exit_valid(x-1, y) { exits.push((index-1, tile_cost(tt))) };
+        if self.is_exit_valid(x+1, y) { exits.push((index+1, tile_cost(tt))) };
+        if self.is_exit_valid(x, y-1) { exits.push((index-w, tile_cost(tt))) };
+        if self.is_exit_valid(x, y+1) { exits.push((index+w, tile_cost(tt))) };
 
         // Diagonals
-        if self.is_exit_valid(x-1, y-1) { exits.push(((index-w)-1, 1.45)); }
-        if self.is_exit_valid(x+1, y-1) { exits.push(((index-w)+1, 1.45)); }
-        if self.is_exit_valid(x-1, y+1) { exits.push(((index+w)-1, 1.45)); }
-        if self.is_exit_valid(x+1, y+1) { exits.push(((index+w)+1, 1.45)); }
-    
+        if self.is_exit_valid(x-1, y-1) { exits.push(((index-w)-1, tile_cost(tt) * 1.45)); }
+        if self.is_exit_valid(x+1, y-1) { exits.push(((index-w)+1, tile_cost(tt) * 1.45)); }
+        if self.is_exit_valid(x-1, y+1) { exits.push(((index+w)-1, tile_cost(tt) * 1.45)); }
+        if self.is_exit_valid(x+1, y+1) { exits.push(((index+w)+1, tile_cost(tt) * 1.45)); }
+
         exits
     }
 }

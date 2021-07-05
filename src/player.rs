@@ -1,6 +1,6 @@
 use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
-use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable};
+use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Bystander};
 
 use super::{CombatStats, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster, EntityMoved};
 use std::cmp::{min, max};
@@ -19,7 +19,9 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut blocks_visibility = ecs.write_storage::<BlocksVisibility>();
     let mut blocks_movement = ecs.write_storage::<BlocksTile>();
     let mut renderables = ecs.write_storage::<Renderable>();
+    let bystanders = ecs.read_storage::<Bystander>();
 
+    let mut swap_entities : Vec<(Entity, i32, i32)> = Vec::new();
     for (entity, _player, pos, viewshed) in (&entities, &mut players, &mut positions, &mut viewsheds).join() {
         if pos.x + delta_x < 1 ||
             pos.x + delta_x > map.width - 1 ||
@@ -30,11 +32,27 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
         let destination_index = map.xy_index(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[destination_index].iter() {
-            let target = combat_stats.get(*potential_target);
-            if let Some(_target) = target {
-                wants_to_melee.insert(entity, WantsToMelee{ target: *potential_target}).expect("Add target failed!");
-                return;
+            let bystander = bystanders.get(*potential_target);
+            if bystander.is_some() {
+                // Note that we want to move the bystander
+                swap_entities.push((*potential_target, pos.x, pos.y));
+
+                // Move the player
+                pos.x = min(map.width - 1, max(0, pos.x + delta_x));
+                pos.y = min(map.height - 1, max(0, pos.y + delta_y));
+                entity_moved.insert(entity, EntityMoved{}).expect("Unable to insert marker.");
+
+                viewshed.dirty = true;
+                ppos.x = pos.x;
+                ppos.y = pos.y;
+            } else {
+                let target = combat_stats.get(*potential_target);
+                if let Some(_target) = target {
+                    wants_to_melee.insert(entity, WantsToMelee { target: *potential_target }).expect("Add target failed.");
+                    return;
+                }
             }
+
             let door = doors.get_mut(*potential_target);
             if let Some(door) = door {
                 door.open = true;
@@ -53,6 +71,14 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             viewshed.dirty = true;
             ppos.x = pos.x;
             ppos.y = pos.y;
+        }
+    }
+
+    for m in swap_entities.iter() {
+        let their_pos = positions.get_mut(m.0);
+        if let Some(their_pos) = their_pos {
+            their_pos.x = m.1;
+            their_pos.y = m.2;
         }
     }
 }

@@ -26,6 +26,7 @@ mod rooms_corridors_nearest;
 mod rooms_corridors_lines;
 mod room_corridor_spawner;
 mod door_placement;
+mod town;
 
 use super::{Map, Position, World};
 use self::simple_map::SimpleMapBuilder;
@@ -57,6 +58,7 @@ use crate::map_builders::rooms_corridors_nearest::NearestCorridors;
 use crate::map_builders::rooms_corridors_lines::StraightLineCorridors;
 use crate::map_builders::room_corridor_spawner::CorridorSpawner;
 use crate::map_builders::door_placement::DoorPlacement;
+use crate::map_builders::town::town_builder;
 
 pub struct BuilderMap {
     pub spawn_list: Vec<(usize, String)>,
@@ -169,6 +171,14 @@ fn random_initial_builder(rng: &mut RandomNumberGenerator) -> (Box<dyn InitialMa
         _ => result = (SimpleMapBuilder::new(), true)
     }
     result
+}
+
+pub fn level_builder(new_depth: i32, rng: &mut RandomNumberGenerator, width: i32, height: i32) -> BuilderChain {
+    rltk::console::log(format!("Depth: {}", new_depth));
+    match new_depth {
+        1 => town_builder(new_depth, rng, width, height),
+        _ => random_builder(new_depth, rng, width, height)
+    }
 }
 
 pub fn random_builder(new_depth: i32, rng: &mut RandomNumberGenerator, width: i32, height: i32) -> BuilderChain {

@@ -206,7 +206,7 @@ impl State {
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
         let mut width: i32 = MAP_WIDTH;
         let mut height: i32 = MAP_HEIGHT;
-        let mut builder = map_builders::random_builder(depth, &mut rng, width, height);
+        let mut builder = map_builders::level_builder(depth, &mut rng, width, height);
         builder.build_map(&mut rng);
         self.mapgen_history = builder.build_data.history.clone();
         let player_start;
@@ -459,6 +459,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Door>();
     gs.ecs.register::<Hidden>();
     gs.ecs.register::<EntityMoved>();
+    gs.ecs.register::<Bystander>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

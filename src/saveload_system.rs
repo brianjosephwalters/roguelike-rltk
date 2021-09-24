@@ -10,7 +10,7 @@ use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, 
             CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
-            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander};
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips};
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -43,7 +43,7 @@ pub fn save_game(ecs: &mut World) {
             CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage, 
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equipped, MeleePowerBonus, DefenseBonus,
-            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
@@ -96,7 +96,7 @@ pub fn load_game(ecs: &mut World) {
             CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
-            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips
         );
     }
 

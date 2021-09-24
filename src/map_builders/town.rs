@@ -46,6 +46,9 @@ impl TownBuilder {
         let building_size = self.sort_buildings(&buildings);
         self.building_factory(rng, build_data, &buildings, &building_size);
 
+        self.spawn_dockers(build_data, rng);
+        self.spawn_townsfolk(build_data, rng, &mut available_building_tiles);
+
         // Start in the pub
         let the_pub = &buildings[building_size[0].0];
         build_data.starting_position = Some(Position {
@@ -446,6 +449,38 @@ impl TownBuilder {
                 }
             }
             build_data.take_snapshot();
+        }
+    }
+
+    fn spawn_dockers(&mut self, build_data: &mut BuilderMap, rng: &mut RandomNumberGenerator) {
+        for (index, tile_type) in build_data.map.tiles.iter().enumerate() {
+            if *tile_type == TileType::Bridge && rng.roll_dice(1, 6) == 1 {
+                let roll = rng.roll_dice(1, 3);
+                match roll {
+                    1 => build_data.spawn_list.push((index, "Docker Worker".to_string())),
+                    2 => build_data.spawn_list.push((index, "Wannabe Pirate".to_string())),
+                    _ => build_data.spawn_list.push((index, "Fisher".to_string())),
+                }
+            }
+        }
+    }
+
+    fn spawn_townsfolk(
+        &mut self,
+        build_data: &mut BuilderMap,
+        rng: &mut RandomNumberGenerator,
+        available_building_tiles: &mut HashSet<usize>
+    ) {
+        for index in available_building_tiles.iter() {
+            if rng.roll_dice(1, 10) == 1 {
+                let roll = rng.roll_dice(1, 4);
+                match roll {
+                    1 => build_data.spawn_list.push((*index, "Peasant".to_string())),
+                    2 => build_data.spawn_list.push((*index, "Drunk".to_string())),
+                    3 => build_data.spawn_list.push((*index, "Dock Worker".to_string())),
+                    _ => build_data.spawn_list.push((*index, "Fisher".to_string()))
+                }
+            }
         }
     }
 }

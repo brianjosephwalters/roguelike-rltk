@@ -125,6 +125,7 @@ pub fn spawn_named_mob(raws: &RawMaster, new_entity: EntityBuilder, key: &str, p
         match mob_template.ai.as_ref() {
             "melee" => eb = eb.with(Monster{}),
             "bystander" => eb = eb.with(Bystander{}),
+            "vendor" => eb = eb.with(Vendor{}),
             _ => {}
         }
 
@@ -139,6 +140,11 @@ pub fn spawn_named_mob(raws: &RawMaster, new_entity: EntityBuilder, key: &str, p
         });
         eb = eb.with(Viewshed{ visible_tiles : Vec::new(), range: mob_template.vision_range, dirty: true });
 
+        if let Some(quips) = &mob_template.quips {
+            eb = eb.with(Quips {
+                available: quips.clone()
+            });
+        }
         return Some(eb.build());
     }
     None

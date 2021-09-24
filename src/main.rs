@@ -55,6 +55,7 @@ pub mod raws;
 
 pub mod rex_assets;
 pub mod camera;
+pub mod bystander_ai_system;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 const MAP_WIDTH: i32 = 80;
@@ -93,6 +94,8 @@ impl State {
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem{};
         mapindex.run_now(&self.ecs);
+        let mut bystander = bystander_ai_system::BystanderAI{};
+        bystander.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem{};
         melee.run_now(&self.ecs);
         let mut damage = DamageSystem{};
@@ -460,6 +463,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Hidden>();
     gs.ecs.register::<EntityMoved>();
     gs.ecs.register::<Bystander>();
+    gs.ecs.register::<Vendor>();
+    gs.ecs.register::<Quips>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

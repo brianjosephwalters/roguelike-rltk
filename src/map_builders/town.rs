@@ -1,17 +1,14 @@
 use super::BuilderChain;
-use rltk::{RandomNumberGenerator, Tile};
-use crate::map_builders::area_starting_points::AreaStartingPosition;
-use crate::map_builders::distant_exit::DistantExit;
-use crate::map_builders::{InitialMapBuilder, BuilderMap};
+use rltk::{RandomNumberGenerator};
 use crate::{TileType, Position};
 use std::collections::HashSet;
-use std::process::exit;
+use crate::map_builders::{InitialMapBuilder, BuilderMap};
 
 enum BuildingTag {
     Pub, Temple, Blacksmith, Clothier, Alchemist, PlayerHouse, Hovel, Abandoned, Unassigned
 }
 
-pub fn town_builder(new_depth: i32, rng: &mut RandomNumberGenerator, width: i32, height: i32) -> BuilderChain {
+pub fn town_builder(new_depth: i32, _rng: &mut RandomNumberGenerator, width: i32, height: i32) -> BuilderChain {
     let mut chain = BuilderChain::new(new_depth, width, height);
     chain.start_with(TownBuilder::new());
     chain
@@ -150,6 +147,7 @@ impl TownBuilder {
     ) {
         // Place items
         let mut to_place: Vec<&str> = vec!["Priest", "Parishioner", "Parishioner", "Chair", "Chair", "Candle", "Candle"];
+        self.random_building_spawn(building, build_data, rng, &mut to_place, 0);
     }
 
     fn build_smith(&mut self,

@@ -26,7 +26,7 @@ impl<'a> System<'a> for VisibilitySystem {
             mut viewshed,
             pos,
             player,
-            mut hiddden,
+            mut hidden,
             mut rng,
             mut log,
             names,
@@ -41,7 +41,6 @@ impl<'a> System<'a> for VisibilitySystem {
         for (ent, viewshed, pos) in (&entities, &mut viewshed, &pos).join() {
             if viewshed.dirty {
                 viewshed.dirty = false;
-                // viewshed.visible_tiles.clear();
                 viewshed.visible_tiles = field_of_view(Point::new(pos.x, pos.y), viewshed.range, &*map);
                 viewshed.visible_tiles.retain(|p| p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height);
 
@@ -54,6 +53,20 @@ impl<'a> System<'a> for VisibilitySystem {
                             let index = map.xy_index(vis.x, vis.y);
                             map.revealed_tiles[index] = true;
                             map.visible_tiles[index] = true;
+
+                            // Chance to reveal Hidden things
+                            for e in map.tile_content[index].iter() {
+                                let maybe_hidden = hidden.get(*e);
+                                if let Some(_maybe_hidden) = maybe_hidden {
+                                    if rng.roll_dice(1, 24) == 1 {
+                                        let name = names.get(*e);
+                                        if let Some(name) = name {
+                                            log.entries.push(format!("You spotted a {}!", &name.name));
+                                        }
+                                        hidden.remove(*e);
+                                    }
+                                }
+                            }
                         }
                     }
                 }    

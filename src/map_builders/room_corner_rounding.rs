@@ -27,7 +27,7 @@ impl RoomCornerRounder {
         if y < h - 2 && build_data.map.tiles[index + w as usize] == TileType::Wall { neighbor_walls += 1; }
 
         if neighbor_walls == 2 {
-            build_data.map.tiles[index] == TileType::Wall;
+            build_data.map.tiles[index] = TileType::Wall;
         }
     }
 

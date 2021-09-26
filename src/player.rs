@@ -2,7 +2,7 @@ use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
 use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Bystander, Vendor};
 
-use super::{CombatStats, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster, EntityMoved};
+use super::{Pools, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster, EntityMoved};
 use std::cmp::{min, max};
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
@@ -12,7 +12,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let map = ecs.fetch::<Map>();
     let mut ppos = ecs.write_resource::<Point>();
     let entities = ecs.entities();
-    let combat_stats = ecs.read_storage::<CombatStats>();
+    let pools = ecs.read_storage::<Pools>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
     let mut entity_moved = ecs.write_storage::<EntityMoved>();
     let mut doors = ecs.write_storage::<Door>();
@@ -48,8 +48,8 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                 ppos.x = pos.x;
                 ppos.y = pos.y;
             } else {
-                let target = combat_stats.get(*potential_target);
-                if let Some(_target) = target {
+                let pools = pools.get(*potential_target);
+                if let Some(_pools) = pools {
                     wants_to_melee.insert(entity, WantsToMelee { target: *potential_target }).expect("Add target failed.");
                     return;
                 }
@@ -142,9 +142,9 @@ pub fn skip_turn(ecs: &mut World) -> RunState {
     }
 
     if can_heal {
-        let mut health_components = ecs.write_storage::<CombatStats>();
-        let player_hp = health_components.get_mut(*player_entity).unwrap();
-        player_hp.hp = i32::min(player_hp.hp + 1, player_hp.max_hp);
+        let mut health_components = ecs.write_storage::<Pools>();
+        let pools = health_components.get_mut(*player_entity).unwrap();
+        pools.hit_points.current = i32::min(pools.hit_points.current  + 1, pools.hit_points.max);
     }
 
     RunState::PlayerTurn

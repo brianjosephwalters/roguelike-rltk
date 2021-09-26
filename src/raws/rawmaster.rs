@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use specs::prelude::*;
 use crate::{random_tables::RandomTable, components::*};
 use super::{Raws, spawn_table_structs::SpawnTableEntry};
+use crate::gamesystem::{attr_bonus, npc_hp, mana_at_level};
 
 pub enum SpawnType {
     AtPosition { x: i32, y: i32 }
@@ -11,15 +12,17 @@ pub struct RawMaster {
     raws: Raws,
     item_index: HashMap<String, usize>,
     mob_index: HashMap<String, usize>,
+    prop_index: HashMap<String, usize>,
 }
 
 impl RawMaster {
     
     pub fn empty() -> RawMaster {
         RawMaster {
-            raws : Raws { items: Vec::new(), mobs: Vec::new(), spawn_table: Vec::new(), },
+            raws : Raws { items: Vec::new(), mobs: Vec::new(), props: Vec::new(), spawn_table: Vec::new(), },
             item_index : HashMap::new(),
             mob_index: HashMap::new(),
+            prop_index: HashMap::new(),
         }
     }
 
@@ -41,6 +44,14 @@ impl RawMaster {
             self.mob_index.insert(mob.name.clone(), i);
             used_names.insert(mob.name.clone());
         }
+        for (i,prop) in self.raws.props.iter().enumerate() {
+            if used_names.contains(&prop.name) {
+                rltk::console::log(format!("WARNING -  duplicate prop name in raws [{}]", prop.name));
+            }
+            self.prop_index.insert(prop.name.clone(), i);
+            used_names.insert(prop.name.clone());
+        }
+
         for spawn in self.raws.spawn_table.iter() {
             if !used_names.contains(&spawn.name) {
                 rltk::console::log(format!("WARNING - Spawn tables references unspecified entity {}", spawn.name));
@@ -55,6 +66,8 @@ pub fn spawn_named_entity(raws: &RawMaster, new_entity: EntityBuilder, key: &str
         return spawn_named_item(raws, new_entity, key, pos);
     } else if raws.mob_index.contains_key(key) {
         return spawn_named_mob(raws, new_entity, key, pos);
+    } else if raws.prop_index.contains_key(key) {
+        return spawn_named_props(raws, new_entity, key, pos);
     }
 
     None
@@ -72,8 +85,8 @@ pub fn spawn_named_item(raws: &RawMaster, new_entity: EntityBuilder, key: &str, 
             eb = eb.with(get_renderable_component(renderable));
         }
 
-        eb = eb.with(crate::components::Name { name: item_template.name.clone()});
-        eb = eb.with(crate::components::Item {});
+        eb = eb.with(Name { name: item_template.name.clone()});
+        eb = eb.with(Item {});
 
         if let Some(consumable) = &item_template.consumable {
             eb = eb.with(crate::components::Consumable {});
@@ -87,6 +100,7 @@ pub fn spawn_named_item(raws: &RawMaster, new_entity: EntityBuilder, key: &str, 
                     "damage" => eb = eb.with(InflictsDamage { damage: effect.1.parse::<i32>().unwrap() }),
                     "area_of_effect" => eb = eb.with(AreaOfEffect { radius: effect.1.parse::<i32>().unwrap()}),
                     "confusion" => eb = eb.with(Confusion { turns: effect.1.parse::<i32>().unwrap()}),
+                    // "magic_mapping" => eb = eb.with( MagicMapper {}),
                     _ => {
                         rltk::console::log(format!("Warning: consumable effect {} not implemented.", effect_name));
                     }
@@ -112,6 +126,7 @@ pub fn spawn_named_item(raws: &RawMaster, new_entity: EntityBuilder, key: &str, 
 pub fn spawn_named_mob(raws: &RawMaster, new_entity: EntityBuilder, key: &str, pos: SpawnType) -> Option<Entity> {
     if raws.mob_index.contains_key(key) {
         let mob_template = &raws.raws.mobs[raws.mob_index[key]];
+
         let mut eb = new_entity;
 
         eb = spawn_position(pos, eb);
@@ -132,19 +147,110 @@ pub fn spawn_named_mob(raws: &RawMaster, new_entity: EntityBuilder, key: &str, p
         if mob_template.blocks_tile {
             eb = eb.with(BlocksTile{});
         }
-        eb = eb.with(CombatStats{
-            max_hp : mob_template.stats.max_hp,
-            hp : mob_template.stats.hp,
-            power : mob_template.stats.power,
-            defense : mob_template.stats.defense
-        });
-        eb = eb.with(Viewshed{ visible_tiles : Vec::new(), range: mob_template.vision_range, dirty: true });
 
         if let Some(quips) = &mob_template.quips {
             eb = eb.with(Quips {
                 available: quips.clone()
             });
         }
+
+        let mut mob_fitness = 11;
+        let mut mob_int = 11;
+        let mut attr = Attributes {
+            might: Attribute { base: 11, modifiers: 0, bonus: attr_bonus(11) },
+            fitness: Attribute { base: 11, modifiers: 0, bonus: attr_bonus(11) },
+            quickness: Attribute { base: 11, modifiers: 0, bonus: attr_bonus(11) },
+            intelligence: Attribute { base: 11, modifiers: 0, bonus: attr_bonus(11) }
+        };
+        if let Some(might) = mob_template.attributes.might {
+            attr.might = Attribute { base: might, modifiers: 0, bonus: attr_bonus(might) };
+        }
+        if let Some(fitness) = mob_template.attributes.fitness {
+            attr.fitness = Attribute { base: fitness, modifiers: 0, bonus: attr_bonus(fitness) };
+            mob_fitness = fitness;
+        }
+        if let Some(quickness) = mob_template.attributes.quickness {
+            attr.quickness = Attribute { base: quickness, modifiers: 0, bonus: attr_bonus(quickness) };
+        }
+        if let Some(intelligence) = mob_template.attributes.intelligence {
+            attr.intelligence = Attribute { base: intelligence, modifiers: 0, bonus: attr_bonus(intelligence) };
+            mob_int = intelligence;
+        }
+        eb = eb.with(attr);
+
+        let mob_level = if mob_template.level.is_some() { mob_template.level.unwrap() } else { 1 };
+        let mob_hp = npc_hp(mob_fitness, mob_level);
+        let mob_mana = mana_at_level(mob_int, mob_level);
+
+        let pools = Pools {
+            level: mob_level,
+            xp: 0,
+            hit_points: Pool { current: mob_hp, max: mob_hp },
+            mana: Pool { current: mob_mana, max: mob_mana }
+        };
+        eb = eb.with(pools);
+
+        let mut skills = Skills { skills: HashMap::new() };
+        skills.skills.insert(Skill::Melee, 1);
+        skills.skills.insert(Skill::Defense, 1);
+        skills.skills.insert(Skill::Magic, 1);
+        if let Some(mob_skills) = &mob_template.skills {
+            for sk in mob_skills.iter() {
+                match sk.0.as_str() {
+                    "Melee" => { skills.skills.insert(Skill::Melee, *sk.1); }
+                    "Defense" => { skills.skills.insert(Skill::Defense, *sk.1); }
+                    "Magic" => { skills.skills.insert(Skill::Magic, *sk.1); }
+                    _ => { rltk::console::log(format!("Unknown skill references [{}]", sk.0)); }
+                }
+            }
+        }
+        eb = eb.with(skills);
+
+        eb = eb.with(Viewshed{ visible_tiles : Vec::new(), range: mob_template.vision_range, dirty: true });
+
+        return Some(eb.build());
+    }
+    None
+}
+
+fn spawn_named_props(raws: &RawMaster, new_entity : EntityBuilder, key : &str, pos : SpawnType) -> Option<Entity> {
+    if raws.prop_index.contains_key(key) {
+        let prop_template = &raws.raws.props[raws.prop_index[key]];
+
+        let mut eb = new_entity;
+
+        eb = spawn_position(pos, eb);
+
+        if let Some(renderable) = &prop_template.renderable {
+            eb = eb.with(get_renderable_component(renderable));
+        }
+
+        eb = eb.with(Name{ name : prop_template.name.clone() });
+
+        if let Some(hidden) = prop_template.hidden {
+            if hidden { eb = eb.with(Hidden{}) };
+        }
+        if let Some(blocks_tile) = prop_template.blocks_tile {
+            if blocks_tile { eb = eb.with(BlocksTile{}) };
+        }
+        if let Some(blocks_visibility) = prop_template.blocks_visibility {
+            if blocks_visibility { eb = eb.with(BlocksVisibility{}) };
+        }
+        if let Some(door_open) = prop_template.door_open {
+            eb = eb.with(Door{ open: door_open });
+        }
+
+        // if let Some(entry_trigger) = &prop_template.entry_trigger {
+        //     eb = eb.with(EntryTrigger{});
+        //     for effect in entry_trigger.effects.iter() {
+        //         match effect.0.as_str() {
+        //             "damage" => { eb = eb.with(InflictsDamage{ damage : effect.1.parse::<i32>().unwrap() }) }
+        //             "single_activation" => { eb = eb.with(SingleActivation{}) }
+        //             _ => {}
+        //         }
+        //     }
+        // }
+
         return Some(eb.build());
     }
     None

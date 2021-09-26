@@ -1,9 +1,5 @@
 use rltk::RandomNumberGenerator;
 use crate::Rect;
-use super::{
-    common::apply_horizontal_tunnel,
-    common::apply_vertical_tunnel,
-};
 use crate::map_builders::{BuilderMap, InitialMapBuilder};
 
 pub struct SimpleMapBuilder {}

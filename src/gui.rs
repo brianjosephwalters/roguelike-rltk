@@ -2,7 +2,7 @@ use rltk::{ RGB, Rltk, VirtualKeyCode };
 use specs::prelude::*;
 
 use super::{
-    Player, CombatStats, GameLog, Map, Name, Position, Point, 
+    Player, Pools, GameLog, Map, Name, Position, Point,
     InBackpack, State, Viewshed, RunState,
     Equipped
 };
@@ -12,23 +12,19 @@ use crate::{camera, Hidden};
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
     ctx.draw_box(0, 43, 79, 6, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
 
-    let combat_stats = ecs.read_storage::<CombatStats>();
+    let pools = ecs.read_storage::<Pools>();
     let players = ecs.read_storage::<Player>();
-    let log = ecs.fetch::<GameLog>();
+    for (_player, pools) in (&players, &pools).join() {
+        let health = format!("HP {} / {}", pools.hit_points.current, pools.hit_points.max);
+        ctx.print_color(12, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &health);
+        ctx.draw_bar_horizontal(28, 43, 51, pools.hit_points.current, pools.hit_points.max, RGB::named(rltk::RED), RGB::named(rltk::BLACK));
+    }
 
     let map = ecs.fetch::<Map>();
     let depth = format!("Depth: {}", map.depth);
     ctx.print_color(2, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
 
-    for (_player, stats) in (&players, &combat_stats).join() {
-        let health = format!("HP {} / {}", stats.hp, stats.max_hp);
-        ctx.print_color(12, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &health);
-        ctx.draw_bar_horizontal(28, 43, 51, stats.hp, stats.max_hp, RGB::named(rltk::RED), RGB::named(rltk::BLACK));
-    }
-
-    let depth = format!("Depth: {}", map.depth);
-    ctx.print_color(2, 43, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), &depth);
-
+    let log = ecs.fetch::<GameLog>();
     let mut y = 44;
     for s in log.entries.iter().rev() {
         if y < 49 { ctx.print(2, y, s); }
@@ -38,9 +34,6 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
     let mouse_pos = ctx.mouse_pos();
     ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::MAGENTA));
     draw_tooltips(ecs, ctx);
-
-    let player_position = ecs.fetch::<rltk::Point>();
-    ctx.print(0, 0, &format!("{}, {}", player_position.x, player_position.y));
 }
 
 fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {

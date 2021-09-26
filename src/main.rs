@@ -7,48 +7,37 @@ use specs::{World, WorldExt};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
-mod components;
 pub use components::*;
-
-mod map;
-pub use map::*;
-
-mod player;
-pub use player::*;
-
-mod monster_ai_system;
-pub use monster_ai_system::*;
-
-mod map_indexing_system;
-pub use map_indexing_system::*;
-
-mod rect;
-pub use rect::*;
-
-mod visibility_system;
-use visibility_system::VisibilitySystem;
-
-mod melee_combat_system;
-use melee_combat_system::MeleeCombatSystem;
-
-mod damage_system;
 use damage_system::DamageSystem;
-
-mod inventory_system;
+use gamelog::GameLog;
 use inventory_system::ItemCollectionSystem;
-use inventory_system::ItemUseSystem;
 use inventory_system::ItemDropSystem;
 use inventory_system::ItemRemoveSystem;
+use inventory_system::ItemUseSystem;
+pub use map::*;
+pub use map_indexing_system::*;
+use melee_combat_system::MeleeCombatSystem;
+pub use monster_ai_system::*;
+pub use player::*;
+use random_tables::RandomTable;
+pub use rect::*;
+use visibility_system::VisibilitySystem;
 
+mod components;
+mod map;
+mod player;
+mod monster_ai_system;
+mod map_indexing_system;
+mod rect;
+mod visibility_system;
+mod melee_combat_system;
+mod damage_system;
+mod inventory_system;
 mod spawner;
 
 mod gui;
 mod gamelog;
-use gamelog::GameLog;
-
 mod random_tables;
-use random_tables::RandomTable;
-
 pub mod saveload_system;
 pub mod map_builders;
 pub mod raws;
@@ -56,6 +45,7 @@ pub mod raws;
 pub mod rex_assets;
 pub mod camera;
 pub mod bystander_ai_system;
+mod gamesystem;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 const MAP_WIDTH: i32 = 80;
@@ -102,10 +92,10 @@ impl State {
         damage.run_now(&self.ecs);
         let mut pickup = ItemCollectionSystem{};
         pickup.run_now(&self.ecs);
-        let mut items = ItemUseSystem{};
-        items.run_now(&self.ecs);
-        let mut drop_items = ItemDropSystem{};
-        drop_items.run_now(&self.ecs);
+        let mut item_use = ItemUseSystem{};
+        item_use.run_now(&self.ecs);
+        let mut item_drop = ItemDropSystem{};
+        item_drop.run_now(&self.ecs);
         let mut item_remove = ItemRemoveSystem{};
         item_remove.run_now(&self.ecs);
 
@@ -169,15 +159,9 @@ impl State {
         }
         self.generate_world_map(current_depth + 1);
 
-        // Notify the player and give them some health
-        let player_entity = self.ecs.fetch::<Entity>();
+        // Notify the player
         let mut gamelog = self.ecs.fetch_mut::<gamelog::GameLog>();
-        gamelog.entries.push("You descend to the next level and take a moment to heal.".to_string());
-        let mut player_health_store = self.ecs.write_storage::<CombatStats>();
-        let player_health = player_health_store.get_mut(*player_entity);
-        if let Some(player_health) = player_health {
-            player_health.hp = i32::max(player_health.hp, player_health.max_hp / 2);
-        }
+        gamelog.entries.push("You descend to the next level.".to_string());
     }
 
     fn game_over_cleanup(&mut self) {
@@ -207,8 +191,8 @@ impl State {
         self.mapgen_history.clear();
 
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        let mut width: i32 = MAP_WIDTH;
-        let mut height: i32 = MAP_HEIGHT;
+        let width: i32 = MAP_WIDTH;
+        let height: i32 = MAP_HEIGHT;
         let mut builder = map_builders::level_builder(depth, &mut rng, width, height);
         builder.build_map(&mut rng);
         self.mapgen_history = builder.build_data.history.clone();
@@ -439,7 +423,6 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<BlocksTile>();
-    gs.ecs.register::<CombatStats>();
     gs.ecs.register::<SufferDamage>();
     gs.ecs.register::<WantsToMelee>();
     gs.ecs.register::<Item>();
@@ -465,6 +448,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Bystander>();
     gs.ecs.register::<Vendor>();
     gs.ecs.register::<Quips>();
+    gs.ecs.register::<Attributes>();
+    gs.ecs.register::<Skills>();
+    gs.ecs.register::<Pools>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

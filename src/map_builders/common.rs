@@ -1,9 +1,6 @@
 use std::cmp::{max, min};
 
-use crate::{
-    Rect, 
-    TileType
-};
+use crate::{ TileType };
 use super::Map;
 
 #[derive(PartialEq, Copy, Clone)]

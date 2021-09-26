@@ -1,6 +1,5 @@
 
-use rltk::{RGB, Rltk, Algorithm2D, BaseMap, Point, SmallVec};
-use specs::prelude::*;
+use rltk::{Algorithm2D, BaseMap, Point, SmallVec};
 use serde::{Serialize, Deserialize};
 use std::collections::HashSet;
 use specs::Entity;

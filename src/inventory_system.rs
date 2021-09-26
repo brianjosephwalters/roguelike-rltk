@@ -4,7 +4,7 @@ use super::{
     Name, InBackpack, 
     Position, 
     gamelog::GameLog, 
-    CombatStats, WantsToDropItem,
+    Pools, WantsToDropItem,
     Consumable, WantsToUseItem, ProvidesHealing,
     InflictsDamage, SufferDamage, Map,
     AreaOfEffect, Confusion, Equippable, Equipped,
@@ -117,7 +117,7 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, ProvidesHealing>,
         ReadStorage<'a, InflictsDamage>,
         WriteStorage<'a, SufferDamage>,
-        WriteStorage<'a, CombatStats>,
+        WriteStorage<'a, Pools>,
         ReadStorage<'a, Name>,
         ReadStorage<'a, AreaOfEffect>,
         WriteStorage<'a, Confusion>,
@@ -136,7 +136,7 @@ impl<'a> System<'a> for ItemUseSystem {
             healing,
             inflict_damage,
             mut suffer_damage,
-            mut combat_stats,
+            mut pools,
             names,
             aoe,
             mut confused,
@@ -212,9 +212,9 @@ impl<'a> System<'a> for ItemUseSystem {
                 Some(healer) => {
                     used_item = false;
                     for target in targets.iter() {
-                        let stats = combat_stats.get_mut(*target);
-                        if let Some(stats) = stats {
-                            stats.hp = i32::min(stats.max_hp, stats.hp + healer.heal_amount);
+                        let pools = pools.get_mut(*target);
+                        if let Some(pools) = pools {
+                            pools.hit_points.current = i32::min(pools.hit_points.max, pools.hit_points.current + healer.heal_amount);
                             if entity == *player_entity {
                                 gamelog.entries.push(format!("You drink the {}, healing {} hp.", names.get(useitem.item).unwrap().name, healer.heal_amount));
                             }

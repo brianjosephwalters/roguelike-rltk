@@ -1,9 +1,8 @@
 use rltk::RandomNumberGenerator;
 
-use crate::{Map, Rect, TileType};
+use crate::{Rect, TileType};
 
 use crate::map_builders::{InitialMapBuilder, BuilderMap};
-use crate::map_builders::common::draw_corridor;
 
 pub struct BspDungeonBuilder {
     rects: Vec<Rect>,

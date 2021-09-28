@@ -8,9 +8,8 @@ pub struct Item {
     pub renderable : Option<Renderable>,
     pub consumable : Option<Consumable>,
     pub weapon : Option<Weapon>,
-    pub shield : Option<Shield>
+    pub wearable : Option<Wearable>
 }
-
 
 #[derive(Deserialize, Debug)]
 pub struct Consumable {
@@ -20,7 +19,15 @@ pub struct Consumable {
 #[derive(Deserialize, Debug)]
 pub struct Weapon {
     pub range: String,
-    pub power_bonus: i32
+    pub attribute: String,
+    pub base_damage: String,
+    pub hit_bonus: i32
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Wearable {
+    pub armor_class: f32,
+    pub slot : String
 }
 
 #[derive(Deserialize, Debug)]

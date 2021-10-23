@@ -6,9 +6,8 @@ const SHOW_BOUNDARIES: bool = true;
 
 pub fn get_screen_bounds(ecs: &World, ctx: &mut Rltk) -> (i32, i32, i32, i32) {
     let player_pos = ecs.fetch::<Point>();
-    let (x_chars, y_chars) = ctx.get_char_size();
-    // println!("Player Position: {} {}", player_pos.x, player_pos.y);
-    // println!("Screen Size: {} {}", x_chars, y_chars);
+    // let (x_chars, y_chars) = ctx.get_char_size();
+    let (x_chars, y_chars) = (48, 44);
     let center_x = (x_chars / 2) as i32;
     let center_y = (y_chars / 2) as i32;
 
@@ -38,10 +37,10 @@ pub fn render_camera(ecs: &World, ctx: &mut Rltk) {
                 let index = map.xy_index(tx, ty);
                 if map.revealed_tiles[index] {
                     let (glyph, fg, bg) = get_tile_glyph(index, &*map);
-                    ctx.set(x, y, fg, bg, glyph);
+                    ctx.set(x + 1, y + 1, fg, bg, glyph);
                 }
             } else if SHOW_BOUNDARIES {
-                ctx.set(x, y, RGB::named(rltk::GRAY), RGB::named(rltk::BLACK), rltk::to_cp437('·'));
+                ctx.set(x + 1, y + 1, RGB::named(rltk::GRAY), RGB::named(rltk::BLACK), rltk::to_cp437('·'));
             }
             x += 1;
         }
@@ -62,7 +61,7 @@ pub fn render_camera(ecs: &World, ctx: &mut Rltk) {
             let entity_screen_x = pos.x - min_x;
             let entity_screen_y = pos.y - min_y;
             if entity_screen_x > 0 && entity_screen_x < map_width && entity_screen_y > 0 && entity_screen_y < map_height {
-                ctx.set(entity_screen_x, entity_screen_y, render.fg, render.bg, render.glyph);
+                ctx.set(entity_screen_x + 1, entity_screen_y + 1, render.fg, render.bg, render.glyph);
             }
         }
     }

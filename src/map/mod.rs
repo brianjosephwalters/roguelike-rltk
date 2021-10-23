@@ -18,6 +18,7 @@ pub struct Map {
     pub blocked: Vec<bool>,
     pub depth: i32,
     pub view_blocked: HashSet<usize>,
+    pub name : String,
 
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
@@ -27,7 +28,7 @@ pub struct Map {
 impl Map {
 
     /// Generates an empty map, consisting entirely of solid walls
-    pub fn new(new_depth : i32, width: i32, height: i32) -> Map {
+    pub fn new<S: ToString>(new_depth : i32, width: i32, height: i32, name: S) -> Map {
         let map_tile_count = (width * height) as usize;
         Map {
             tiles : vec![TileType::Wall; map_tile_count],
@@ -39,6 +40,7 @@ impl Map {
             tile_content : vec![Vec::new(); map_tile_count],
             depth: new_depth,
             view_blocked: HashSet::new(),
+            name: name.to_string()
         }
     }
 

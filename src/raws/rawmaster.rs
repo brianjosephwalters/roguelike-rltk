@@ -5,6 +5,7 @@ use crate::{random_tables::RandomTable, components::*};
 use super::{Raws, spawn_table_structs::SpawnTableEntry};
 use crate::gamesystem::{attr_bonus, npc_hp, mana_at_level};
 use specs::saveload::{SimpleMarker, MarkedBuilder};
+use rltk::RandomNumberGenerator;
 
 pub enum SpawnType {
     AtPosition { x: i32, y: i32 },
@@ -17,16 +18,24 @@ pub struct RawMaster {
     item_index: HashMap<String, usize>,
     mob_index: HashMap<String, usize>,
     prop_index: HashMap<String, usize>,
+    loot_index: HashMap<String, usize>,
 }
 
 impl RawMaster {
     
     pub fn empty() -> RawMaster {
         RawMaster {
-            raws : Raws { items: Vec::new(), mobs: Vec::new(), props: Vec::new(), spawn_table: Vec::new(), },
+            raws : Raws {
+                items: Vec::new(),
+                mobs: Vec::new(),
+                props: Vec::new(),
+                spawn_table: Vec::new(),
+                loot_table: Vec::new(),
+            },
             item_index : HashMap::new(),
             mob_index: HashMap::new(),
             prop_index: HashMap::new(),
+            loot_index: HashMap::new(),
         }
     }
 
@@ -55,11 +64,13 @@ impl RawMaster {
             self.prop_index.insert(prop.name.clone(), i);
             used_names.insert(prop.name.clone());
         }
-
         for spawn in self.raws.spawn_table.iter() {
             if !used_names.contains(&spawn.name) {
                 rltk::console::log(format!("WARNING - Spawn tables references unspecified entity {}", spawn.name));
             }
+        }
+        for (i, loot) in self.raws.loot_table.iter().enumerate() {
+            self.loot_index.insert(loot.name.clone(), i);
         }
     }
 
@@ -159,6 +170,8 @@ pub fn spawn_named_mob(raws: &RawMaster, ecs : &mut World, key: &str, pos: Spawn
             "melee" => eb = eb.with(Monster{}),
             "bystander" => eb = eb.with(Bystander{}),
             "vendor" => eb = eb.with(Vendor{}),
+            "carnivore" => eb = eb.with(Carnivore{}),
+            "herbivore" => eb = eb.with(Herbivore{}),
             _ => {}
         }
 
@@ -243,6 +256,10 @@ pub fn spawn_named_mob(raws: &RawMaster, ecs : &mut World, key: &str, pos: Spawn
                 }
             }
             eb = eb.with(nature);
+        }
+
+        if let Some(loot) = &mob_template.loot_table {
+            eb = eb.with(LootTable { table: loot.clone() })
         }
 
         eb = eb.with(Viewshed{ visible_tiles : Vec::new(), range: mob_template.vision_range, dirty: true });
@@ -380,4 +397,16 @@ fn find_slot_for_equippable_item(tag : &str, raws: &RawMaster) -> EquipmentSlot 
         return string_to_slot(&wearable.slot);
     }
     panic!("Trying to equip {}, but it has no slot tag.", tag);
+}
+
+pub fn get_item_drop(raws: &RawMaster, rng: &mut RandomNumberGenerator, table: &str) -> Option<String> {
+    if raws.loot_index.contains_key(table) {
+        let mut rt = RandomTable::new();
+        let available_options = &raws.raws.loot_table[raws.loot_index[table]];
+        for item in available_options.drops.iter() {
+            rt = rt.add(item.name.clone(), item.weight);
+        }
+        return Some(rt.roll(rng));
+    }
+    None
 }

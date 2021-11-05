@@ -37,8 +37,8 @@ impl TownBuilder {
         let doors = self.add_doors(rng, build_data, &mut buildings, wall_gap_y);
         self.add_paths(build_data, &doors);
 
-        let exit_index = build_data.map.xy_index(build_data.width - 5, wall_gap_y);
-        build_data.map.tiles[exit_index] = TileType::DownStairs;
+        // let exit_index = build_data.map.xy_index(build_data.width - 5, wall_gap_y);
+        // build_data.map.tiles[exit_index] = TileType::DownStairs;
 
         let building_size = self.sort_buildings(&buildings);
         self.building_factory(rng, build_data, &buildings, &building_size);
@@ -294,6 +294,11 @@ impl TownBuilder {
                     build_data.map.tiles[road_index] = TileType::Road;
                 }
             }
+        }
+
+        for y in wall_gap_y - 3 .. wall_gap_y + 4 {
+            let exit_index = build_data.map.xy_index(build_data.width - 2, y);
+            build_data.map.tiles[exit_index] = TileType::DownStairs;
         }
 
         build_data.take_snapshot();

@@ -46,6 +46,7 @@ pub mod rex_assets;
 pub mod camera;
 pub mod bystander_ai_system;
 mod gamesystem;
+mod animal_ai_system;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 const MAP_WIDTH: i32 = 80;
@@ -453,6 +454,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Skills>();
     gs.ecs.register::<Pools>();
     gs.ecs.register::<NaturalAttackDefense>();
+    gs.ecs.register::<LootTable>();
+    gs.ecs.register::<Carnivore>();
+    gs.ecs.register::<Herbivore>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

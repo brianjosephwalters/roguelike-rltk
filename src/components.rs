@@ -242,3 +242,13 @@ pub struct NaturalAttackDefense {
     pub attacks : Vec<NaturalAttack>
 }
 
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct LootTable {
+    pub table: String
+}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Carnivore {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Herbivore {}

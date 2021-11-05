@@ -7,12 +7,14 @@ use mob_structs::Mob;
 pub use rawmaster::*;
 use spawn_table_structs::SpawnTableEntry;
 use crate::raws::prop_structs::Prop;
+use crate::raws::loot_structs::LootTable;
 
 mod item_structs;
 mod mob_structs;
 mod spawn_table_structs;
 mod rawmaster;
 mod prop_structs;
+mod loot_structs;
 
 #[derive(Deserialize, Debug)]
 pub struct Raws {
@@ -20,6 +22,7 @@ pub struct Raws {
     pub mobs : Vec<Mob>,
     pub props: Vec<Prop>,
     pub spawn_table : Vec<SpawnTableEntry>,
+    pub loot_table: Vec<LootTable>,
 }
 
 #[derive(Deserialize, Debug)]

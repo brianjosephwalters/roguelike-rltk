@@ -5,7 +5,10 @@ use std::collections::HashSet;
 use specs::Entity;
 
 mod tiletype;
+mod themes;
+
 pub use tiletype::{TileType, tile_walkable, tile_opaque};
+pub use themes::*;
 use crate::map::tiletype::tile_cost;
 
 #[derive(Default, Serialize, Deserialize, Clone)]

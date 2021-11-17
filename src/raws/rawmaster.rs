@@ -264,6 +264,10 @@ pub fn spawn_named_mob(raws: &RawMaster, ecs : &mut World, key: &str, pos: Spawn
 
         eb = eb.with(Viewshed{ visible_tiles : Vec::new(), range: mob_template.vision_range, dirty: true });
 
+        if let Some(light) = &mob_template.light {
+            eb = eb.with(LightSource{ range: light.range, color : rltk::RGB::from_hex(&light.color).expect("Bad color") });
+        }
+
         let new_mob = eb.build();
 
         // Are they wielding anyting?
@@ -311,7 +315,7 @@ fn spawn_named_props(raws: &RawMaster, ecs : &mut World, key : &str, pos : Spawn
 }
 
 fn spawn_position<'a>(pos: SpawnType, new_entity: EntityBuilder<'a>, tag: &str, raws: &RawMaster) -> EntityBuilder<'a> {
-    let mut eb = new_entity;
+    let eb = new_entity;
 
     match pos {
         SpawnType::AtPosition{x,y} => eb.with(Position { x, y }),

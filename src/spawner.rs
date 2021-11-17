@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 use specs::saveload::{MarkedBuilder, SimpleMarker};
-use crate::{Map, TileType, raws::get_spawn_table_for_depth, Attributes, Attribute, Skills, Skill, Pool, Pools};
+use crate::{Map, TileType, raws::get_spawn_table_for_depth, Attributes, Attribute, Skills, Skill, Pool, Pools, LightSource};
 
 use super::{
     Player, Renderable, Name, Position, Rect, Viewshed, SerializeMe, RandomTable, raws::*
@@ -49,6 +49,7 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
             level: 1,
         })
         .with(skills)
+        .with(LightSource { color: RGB::from_f32(1.0, 1.0, 0.5), range: 8})
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 

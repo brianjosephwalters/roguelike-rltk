@@ -1,6 +1,5 @@
 use std::{fs::File, path::Path, fs};
 
-use rltk::console;
 use specs::{World};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator, SerializeComponents, DeserializeComponents, MarkedBuilder};
@@ -12,7 +11,7 @@ use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, 
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
             Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
-            DMSerializationHelper};
+            DMSerializationHelper, LightSource};
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -53,7 +52,7 @@ pub fn save_game(ecs: &mut World) {
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
             Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
-            DMSerializationHelper
+            DMSerializationHelper, LightSource
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
@@ -108,7 +107,7 @@ pub fn load_game(ecs: &mut World) {
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
             Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
-            DMSerializationHelper
+            DMSerializationHelper, LightSource
         );
     }
 

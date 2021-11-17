@@ -33,7 +33,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
             attributes,
             skills,
             mut inflict_damage,
-            positions,
+            _positions,
             pools,
             mut rng,
             equipped_items,
@@ -85,7 +85,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
                     else { attacker_attributes.quickness.bonus};
                 let skill_hit_bonus = skill_bonus(Skill::Melee, &*attacker_skills);
                 let weapon_hit_bonus = weapon_info.hit_bonus;
-                let mut status_hit_bonus = 0;
+                let status_hit_bonus = 0;
                 let modified_hit_roll = natural_roll + attribute_hit_bonus + skill_hit_bonus + weapon_hit_bonus + status_hit_bonus;
 
                 let mut armor_item_bonus_f = 0.0;

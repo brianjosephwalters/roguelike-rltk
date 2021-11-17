@@ -4,7 +4,6 @@ use crate::{Map, TileType, Position, Viewshed, OtherLevelPosition};
 use specs::{World, WorldExt, Entity, Join};
 use rltk::{RandomNumberGenerator, Point};
 use crate::map_builders::level_builder;
-use crate::spawner::player;
 
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct MasterDungeonMap {

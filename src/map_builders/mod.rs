@@ -29,6 +29,8 @@ mod door_placement;
 mod town;
 mod forest;
 mod yellow_brick_road;
+mod limestone_cavern;
+
 
 use super::{Map, Position, World};
 use self::simple_map::SimpleMapBuilder;
@@ -62,6 +64,7 @@ use crate::map_builders::room_corridor_spawner::CorridorSpawner;
 use crate::map_builders::door_placement::DoorPlacement;
 use crate::map_builders::town::town_builder;
 use crate::map_builders::forest::forest_builder;
+use crate::map_builders::limestone_cavern::limestone_builder;
 
 pub struct BuilderMap {
     pub spawn_list: Vec<(usize, String)>,
@@ -151,6 +154,7 @@ pub trait MetaMapBuilder {
     fn build_map(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap);
 }
 
+#[allow(unused)]
 fn random_initial_builder(rng: &mut RandomNumberGenerator) -> (Box<dyn InitialMapBuilder>, bool) {
     let builder = rng.roll_dice(1, 17);
     let result: (Box<dyn InitialMapBuilder>, bool);
@@ -181,6 +185,7 @@ pub fn level_builder(new_depth: i32, rng: &mut RandomNumberGenerator, width: i32
     match new_depth {
         1 => town_builder(new_depth, rng, width, height),
         2 => forest_builder(new_depth, rng, width, height),
+        3 => limestone_builder(new_depth, rng, width, height),
         _ => random_builder(new_depth, rng, width, height)
     }
 }

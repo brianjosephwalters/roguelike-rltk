@@ -48,6 +48,7 @@ pub mod camera;
 pub mod bystander_ai_system;
 mod gamesystem;
 mod animal_ai_system;
+mod lighting_system;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 const MAP_WIDTH: i32 = 80;
@@ -69,6 +70,7 @@ pub enum RunState {
     ShowRemoveItem,
     GameOver,
     MapGeneration,
+    ShowCheatMenu
 }
 
 pub struct State {
@@ -101,50 +103,10 @@ impl State {
         item_drop.run_now(&self.ecs);
         let mut item_remove = ItemRemoveSystem{};
         item_remove.run_now(&self.ecs);
+        let mut lighting = lighting_system::LightingSystem{};
+        lighting.run_now(&self.ecs);
 
         self.ecs.maintain();
-    }
-
-    fn entities_to_remove_on_level_change(&mut self) -> Vec<Entity> {
-
-        let entities = self.ecs.entities();
-        let player = self.ecs.read_storage::<Player>();
-        let backpack = self.ecs.read_storage::<InBackpack>();
-        let player_entity = self.ecs.fetch::<Entity>();
-        let equipped = self.ecs.read_storage::<Equipped>();
-
-        let mut to_delete: Vec<Entity> = Vec::new();
-        for entity in entities.join() {
-            let mut should_delete = true;
-
-            // Don't delete the player
-            let p = player.get(entity);
-            if let Some(_p) = p {
-                should_delete = false;
-            }
-
-            // Don't delete the player's equipment
-            let bp = backpack.get(entity);
-            if let Some(bp) = bp {
-                if bp.owner == *player_entity {
-                    should_delete = false;
-                }
-            }
-
-            // Don't delete equipped items.
-            let eq = equipped.get(entity);
-            if let Some(eq) = eq {
-                if eq.owner == *player_entity {
-                    should_delete = false;
-            }
-        }
-
-            if should_delete {
-                to_delete.push(entity);
-            }
-        }
-
-        to_delete
     }
 
     fn goto_level(&mut self, offset: i32) {
@@ -156,46 +118,6 @@ impl State {
         // Notify the player
         let mut gamelog = self.ecs.fetch_mut::<GameLog>();
         gamelog.entries.push("You changed level.".to_string());
-    }
-
-    fn goto_next_level(&mut self) {
-        // Delete entities that aren't the player or his/her equipment
-        let to_delete = self.entities_to_remove_on_level_change();
-        for target in to_delete {
-            self.ecs.delete_entity(target).expect("Unable to delete entity");
-        }
-
-        // Build a new map and place the player
-        let current_depth;
-        {
-            let worldmap_resource = self.ecs.fetch::<Map>();
-            current_depth = worldmap_resource.depth;
-        }
-        self.generate_world_map(current_depth + 1, 0);
-
-        // Notify the player
-        let mut gamelog = self.ecs.fetch_mut::<gamelog::GameLog>();
-        gamelog.entries.push("You descend to the next level.".to_string());
-    }
-
-    fn goto_previous_level(&mut self) {
-        // Delete entities that aren't the player or their equipment
-        let to_delete = self.entities_to_remove_on_level_change();
-        for target in to_delete {
-            self.ecs.delete_entity(target).expect("Unable to delete entity");
-        }
-
-        // Build a new map and place the player
-        let current_depth;
-        {
-            let worldmap_resource = self.ecs.fetch::<Map>();
-            current_depth = worldmap_resource.depth;
-        }
-        self.generate_world_map(current_depth - 1, 0);
-
-        // Notify the player
-        let mut gamelog = self.ecs.fetch_mut::<gamelog::GameLog>();
-        gamelog.entries.push("You ascend to the previous level.".to_string());
     }
 
     fn game_over_cleanup(&mut self) {
@@ -233,44 +155,6 @@ impl State {
         } else {
             map::thaw_level_entities(&mut self.ecs);
         }
-
-        // let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        // let width: i32 = MAP_WIDTH;
-        // let height: i32 = MAP_HEIGHT;
-        // let mut builder = map_builders::level_builder(depth, &mut rng, width, height);
-        // builder.build_map(&mut rng);
-        // self.mapgen_history = builder.build_data.history.clone();
-        // let player_start;
-        // {
-        //     let mut worldmap_resource = self.ecs.write_resource::<Map>();
-        //     *worldmap_resource = builder.build_data.map.clone();
-        //     player_start = builder.build_data.starting_position.as_mut().unwrap().clone();
-        // }
-        //
-        // // Stops the borrow on rng (and on self)
-        // std::mem::drop(rng);
-        //
-        // // Spawn bad guys
-        // builder.spawn_entities(&mut self.ecs);
-        //
-        // // Place the player and update resources
-        // let (player_x, player_y) = (player_start.x, player_start.y);
-        // let mut player_position = self.ecs.write_resource::<Point>();
-        // *player_position = Point::new(player_x, player_y);
-        // let mut position_components = self.ecs.write_storage::<Position>();
-        // let player_entity = self.ecs.fetch::<Entity>();
-        // let player_pos_comp = position_components.get_mut(*player_entity);
-        // if let Some(player_pos_comp) = player_pos_comp {
-        //     player_pos_comp.x = player_x;
-        //     player_pos_comp.y = player_y;
-        // }
-        //
-        // // Mark the player's visibility as dirty
-        // let mut viewshed_components = self.ecs.write_storage::<Viewshed>();
-        // let vs = viewshed_components.get_mut(*player_entity);
-        // if let Some(vs) = vs {
-        //     vs.dirty = true;
-        // }
     }
 }
 
@@ -434,6 +318,18 @@ impl GameState for State {
                     }
                 }
             }
+            RunState::ShowCheatMenu => {
+                let result = gui::show_cheat_mode(self, ctx);
+                match result {
+                    gui::CheatMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::CheatMenuResult::NoResponse => {},
+                    gui::CheatMenuResult::TeleportToExit => {
+                        self.goto_level(1);
+                        self.mapgen_next_state = Some(RunState::PreRun);
+                        newrunstate = RunState::MapGeneration;
+                    }
+                }
+            }
         }
 
         {
@@ -507,6 +403,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Carnivore>();
     gs.ecs.register::<Herbivore>();
     gs.ecs.register::<OtherLevelPosition>();
+    gs.ecs.register::<LightSource>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

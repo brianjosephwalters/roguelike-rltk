@@ -12,6 +12,7 @@ impl MetaMapBuilder for YellowBrickRoad {
 
 impl YellowBrickRoad {
 
+    #[allow(unused)]
     pub fn new() -> Box<YellowBrickRoad> {
         Box::new(YellowBrickRoad{})
     }

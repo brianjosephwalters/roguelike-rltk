@@ -1,11 +1,11 @@
 use specs::{World, WorldExt, Join};
 use rltk::{Rltk, Point, RGB};
-use crate::{Map, Position, Renderable, Hidden, TileType};
+use crate::{Map, Position, Renderable, Hidden};
 use crate::map::tile_glyph;
 
 const SHOW_BOUNDARIES: bool = true;
 
-pub fn get_screen_bounds(ecs: &World, ctx: &mut Rltk) -> (i32, i32, i32, i32) {
+pub fn get_screen_bounds(ecs: &World, _ctx: &mut Rltk) -> (i32, i32, i32, i32) {
     let player_pos = ecs.fetch::<Point>();
     // let (x_chars, y_chars) = ctx.get_char_size();
     let (x_chars, y_chars) = (48, 44);

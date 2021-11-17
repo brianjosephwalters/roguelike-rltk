@@ -76,7 +76,7 @@ impl<'a> System<'a> for AnimalAI {
                     if herbivore.get(*other_entity).is_some() || *other_entity == *player_entity {
                         let distance = DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *other_tile);
                         if distance < 1.5 {
-                            wants_to_melee.insert(entity, WantsToMelee {target: *other_entity});
+                            wants_to_melee.insert(entity, WantsToMelee {target: *other_entity}).expect("Unable to insert");
                             attacked = true;
                         } else {
                             run_towards.push(view_index);

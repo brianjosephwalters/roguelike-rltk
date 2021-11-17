@@ -67,7 +67,7 @@ impl SufferDamage {
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Item {}
 
-#[derive(Component, Debug, ConvertSaveload)]
+#[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct InBackpack {
     pub owner: Entity,
 }
@@ -120,7 +120,12 @@ pub struct Confusion {
 // Special component that exists to help serialize the game data
 #[derive(Component, Serialize, Deserialize, Clone)]
 pub struct SerializationHelper {
-    pub map : super::map::Map
+    pub map: super::map::Map
+}
+
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct DMSerializationHelper {
+    pub map: super::map::MasterDungeonMap
 }
 
 #[derive(PartialEq, Copy, Clone, Serialize, Deserialize)]
@@ -136,11 +141,6 @@ pub struct Equipped {
     pub owner : Entity,
     pub slot : EquipmentSlot
 }
-
-// #[derive(Component, ConvertSaveload, Clone)]
-// pub struct MeleePowerBonus {
-//     pub power : i32
-// }
 
 #[derive(PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub enum WeaponAttribute { Might, Quickness }
@@ -252,3 +252,10 @@ pub struct Carnivore {}
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Herbivore {}
+
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct OtherLevelPosition {
+    pub x: i32,
+    pub y: i32,
+    pub depth: i32
+}

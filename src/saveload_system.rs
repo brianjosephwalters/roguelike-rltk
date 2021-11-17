@@ -11,7 +11,8 @@ use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, 
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
-            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore};
+            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
+            DMSerializationHelper};
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -29,26 +30,34 @@ macro_rules! serialize_individually {
 
 pub fn save_game(ecs: &mut World) {
     let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
+    let dungeon_master = ecs.get_mut::<super::map::MasterDungeonMap>().unwrap().clone();
     let savehelper = ecs
         .create_entity()
         .with(SerializationHelper { map: mapcopy })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
-    
+    let savehelper2 = ecs
+        .create_entity()
+        .with(DMSerializationHelper{ map: dungeon_master })
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
     {
         let data = ( ecs.entities(), ecs.read_storage::<SimpleMarker<SerializeMe>>() );
+
         let writer = File::create("./savegame.json").unwrap();
         let mut serializer = serde_json::Serializer::new(writer);
         serialize_individually!(ecs, serializer, data,
             Position, Renderable, Player, Viewshed, Monster, Name, BlocksTile, 
             SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
-            WantsToDropItem, SerializationHelper, Equipped, MeleeWeapon, Wearable,
+            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
-            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore
+            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
+            DMSerializationHelper
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
+    ecs.delete_entity(savehelper2).expect("Crash on cleanup");
 }
 
 pub fn does_save_exist() -> bool {
@@ -60,7 +69,7 @@ macro_rules! deserialize_individually {
         $(
         DeserializeComponents::<NoError, _>::deserialize(
             &mut ( &mut $ecs.write_storage::<$type>(), ),
-            &mut $data.0, // entities
+            &$data.0, // entities
             &mut $data.1, // marker
             &mut $data.2, // allocater
             &mut $de,
@@ -78,7 +87,6 @@ pub fn load_game(ecs: &mut World) {
             to_delete.push(e);
         }
         for del in to_delete.iter() {
-            console::log("Deleting Entities");
             ecs.delete_entity(*del).expect("Deletion failed.");
         }
     }
@@ -99,14 +107,17 @@ pub fn load_game(ecs: &mut World) {
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
-            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore
+            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
+            DMSerializationHelper
         );
     }
 
     let mut deleteme: Option<Entity> = None;
+    let mut deleteme2: Option<Entity> = None;
     {
         let entities = ecs.entities();
         let helper = ecs.read_storage::<SerializationHelper>();
+        let helper2 = ecs.read_storage::<DMSerializationHelper>();
         let player = ecs.read_storage::<Player>();
         let position = ecs.read_storage::<Position>();
         for (e, h) in (&entities, &helper).join() {
@@ -115,6 +126,13 @@ pub fn load_game(ecs: &mut World) {
             worldmap.tile_content = vec![Vec::new(); (worldmap.height * worldmap.width) as usize];
             deleteme = Some(e);
         }
+
+        for (e, h) in (&entities, &helper2).join() {
+            let mut dungeonmaster = ecs.write_resource::<super::map::MasterDungeonMap>();
+            *dungeonmaster = h.map.clone();
+            deleteme2 = Some(e);
+        }
+
         for (e, _p, pos) in (&entities, &player, &position).join() {
             let mut ppos = ecs.write_resource::<rltk::Point>();
             *ppos = rltk::Point::new(pos.x, pos.y);
@@ -123,6 +141,7 @@ pub fn load_game(ecs: &mut World) {
         }
     }
     ecs.delete_entity(deleteme.unwrap()).expect("Unable to delete helper");
+    ecs.delete_entity(deleteme2.unwrap()).expect("Unable to delete helper");
 }
 
 pub fn delete_save() {

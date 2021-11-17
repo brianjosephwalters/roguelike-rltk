@@ -5,7 +5,7 @@ use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Bystander,
 use super::{Pools, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster, EntityMoved};
 use std::cmp::{min, max};
 
-pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
+pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
@@ -22,13 +22,15 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let bystanders = ecs.read_storage::<Bystander>();
     let vendors = ecs.read_storage::<Vendor>();
 
+    let mut result = RunState::AwaitingInput;
+
     let mut swap_entities : Vec<(Entity, i32, i32)> = Vec::new();
     for (entity, _player, pos, viewshed) in (&entities, &mut players, &mut positions, &mut viewsheds).join() {
         if pos.x + delta_x < 1 ||
             pos.x + delta_x > map.width - 1 ||
             pos.y + delta_y < 1 ||
             pos.y + delta_y > map.height - 1 {
-            return;
+            return RunState::AwaitingInput;
         }
         let destination_index = map.xy_index(pos.x + delta_x, pos.y + delta_y);
 
@@ -47,11 +49,12 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                 viewshed.dirty = true;
                 ppos.x = pos.x;
                 ppos.y = pos.y;
+                result = RunState::PlayerTurn;
             } else {
                 let pools = pools.get(*potential_target);
                 if let Some(_pools) = pools {
                     wants_to_melee.insert(entity, WantsToMelee { target: *potential_target }).expect("Add target failed.");
-                    return;
+                    return RunState::PlayerTurn;
                 }
             }
 
@@ -73,6 +76,12 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             viewshed.dirty = true;
             ppos.x = pos.x;
             ppos.y = pos.y;
+            result = RunState::PlayerTurn;
+            match map.tiles[destination_index] {
+                TileType::DownStairs => result = RunState::NextLevel,
+                TileType::UpStairs => result = RunState::PreviousLevel,
+                _ => {}
+            }
         }
     }
 
@@ -83,6 +92,8 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             their_pos.y = m.2;
         }
     }
+
+    result
 }
 
 pub fn get_item(ecs: &mut World) {
@@ -114,6 +125,19 @@ pub fn try_next_level(ecs: &mut World) -> bool {
     let map = ecs.fetch::<Map>();
     let player_index = map.xy_index(player_pos.x, player_pos.y);
     if map.tiles[player_index] == TileType::DownStairs {
+        true
+    } else {
+        let mut gamelog = ecs.fetch_mut::<GameLog>();
+        gamelog.entries.push("There is no way down from here.".to_string());
+        false
+    }
+}
+
+pub fn try_previous_level(ecs: &mut World) -> bool {
+    let player_pos = ecs.fetch::<Point>();
+    let map = ecs.fetch::<Map>();
+    let player_index = map.xy_index(player_pos.x, player_pos.y);
+    if map.tiles[player_index] == TileType::UpStairs {
         true
     } else {
         let mut gamelog = ecs.fetch_mut::<GameLog>();
@@ -175,32 +199,32 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
         Some(key) => match key {
             VirtualKeyCode::Left |
             VirtualKeyCode::Numpad4 |
-            VirtualKeyCode::H => try_move_player(-1, 0, &mut gs.ecs),
+            VirtualKeyCode::H => return try_move_player(-1, 0, &mut gs.ecs),
 
             VirtualKeyCode::Right |
             VirtualKeyCode::Numpad6 |
-            VirtualKeyCode::L => try_move_player(1, 0, &mut gs.ecs),
+            VirtualKeyCode::L => return try_move_player(1, 0, &mut gs.ecs),
 
             VirtualKeyCode::Up | 
             VirtualKeyCode::Numpad8 | 
-            VirtualKeyCode::K => try_move_player(0, -1, &mut gs.ecs),
+            VirtualKeyCode::K => return try_move_player(0, -1, &mut gs.ecs),
 
             VirtualKeyCode::Down | 
             VirtualKeyCode::Numpad2 | 
-            VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
+            VirtualKeyCode::J => return try_move_player(0, 1, &mut gs.ecs),
 
             // Diagonals
             VirtualKeyCode::Numpad9 |
-            VirtualKeyCode::Y => try_move_player(1, -1, &mut gs.ecs),
+            VirtualKeyCode::Y => return try_move_player(1, -1, &mut gs.ecs),
 
             VirtualKeyCode::Numpad7 |
-            VirtualKeyCode::U => try_move_player(-1, -1, &mut gs.ecs),
+            VirtualKeyCode::U => return try_move_player(-1, -1, &mut gs.ecs),
 
             VirtualKeyCode::Numpad3 |
-            VirtualKeyCode::N => try_move_player(1, 1, &mut gs.ecs),
+            VirtualKeyCode::N => return try_move_player(1, 1, &mut gs.ecs),
 
             VirtualKeyCode::Numpad1 |
-            VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
+            VirtualKeyCode::B => return try_move_player(-1, 1, &mut gs.ecs),
 
             VirtualKeyCode::G => get_item(&mut gs.ecs),
 
@@ -210,6 +234,11 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             VirtualKeyCode::Period => {
                 if try_next_level(&mut gs.ecs) {
                     return RunState::NextLevel;
+                }
+            }
+            VirtualKeyCode::Comma => {
+                if try_previous_level(&mut gs.ecs) {
+                    return RunState::PreviousLevel;
                 }
             }
             VirtualKeyCode::R => return RunState::ShowRemoveItem,

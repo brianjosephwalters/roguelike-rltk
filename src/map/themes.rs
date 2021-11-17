@@ -39,6 +39,10 @@ fn get_tile_glyph_default(index: usize, map: &Map) -> (rltk::FontCharType, RGB, 
             glyph = rltk::to_cp437('>');
             fg = RGB::from_f32(0., 1.0, 1.0);
         }
+        TileType::UpStairs => {
+            glyph = rltk::to_cp437('<');
+            fg = RGB::from_f32(0., 1.0, 1.0);
+        }
         TileType::Bridge => {
             glyph = rltk::to_cp437('.');
             fg = RGB::named(rltk::CHOCOLATE);

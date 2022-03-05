@@ -9,6 +9,7 @@ enum BuildingTag {
 }
 
 pub fn town_builder(new_depth: i32, _rng: &mut RandomNumberGenerator, width: i32, height: i32) -> BuilderChain {
+    rltk::console::log(format!("TownBuilder"));
     let mut chain = BuilderChain::new(new_depth, width, height, "The Town of Brian");
     chain.start_with(TownBuilder::new());
     chain
@@ -28,6 +29,7 @@ impl TownBuilder {
     }
 
     pub fn build_rooms(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
+        rltk::console::log(format!("Build Rooms"));
         self.grass_layer(build_data);
         self.water_and_piers(rng, build_data);
 
@@ -443,7 +445,9 @@ impl TownBuilder {
             nearest_roads.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
             let destination = nearest_roads[0].0;
-            let path = rltk::a_star_search(*door_index, destination, &mut build_data.map);
+            println!("before a_star_search in towns.rs");
+            let path = rltk::a_star_search(*door_index, destination, &build_data.map);
+            println!("after a_star_search in towns.rs");
             if path.success {
                 for step in path.steps.iter() {
                     let index = *step as usize;

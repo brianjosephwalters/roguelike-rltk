@@ -26,6 +26,7 @@ impl YellowBrickRoad {
         build_data.map.tiles[end_index] = TileType::DownStairs;
 
         build_data.map.populate_blocked();
+        println!("a_star_search for path in yellow_brick_roads.rs");
         let path = rltk::a_star_search(start_index, end_index, &mut build_data.map);
 
         for index in path.steps.iter() {
@@ -52,6 +53,7 @@ impl YellowBrickRoad {
 
         let (stream_x, stream_y) = self.find_exit(build_data, stream_start_x, stream_start_y);
         let stream_index = build_data.map.xy_index(stream_x, stream_y) as usize;
+        println!("a_star_search for stream in yellow_brick_roads.rs");
         let stream = rltk::a_star_search(stairs_index, stream_index, &mut build_data.map);
         for tile in stream.steps.iter() {
             if build_data.map.tiles[*tile as usize] == TileType::Floor {

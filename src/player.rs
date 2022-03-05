@@ -1,31 +1,31 @@
 use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
-use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Bystander, Vendor};
+use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Faction, Attributes};
 
-use super::{Pools, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, Monster, EntityMoved};
+use super::{Pools, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, EntityMoved};
 use std::cmp::{min, max};
+use crate::raws::faction_structs::Reaction;
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
+    println!("try_move_player");
     let mut positions = ecs.write_storage::<Position>();
-    let mut players = ecs.write_storage::<Player>();
+    let players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
     let map = ecs.fetch::<Map>();
-    let mut ppos = ecs.write_resource::<Point>();
     let entities = ecs.entities();
-    let pools = ecs.read_storage::<Pools>();
+    let combat_stats = ecs.read_storage::<Attributes>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
     let mut entity_moved = ecs.write_storage::<EntityMoved>();
     let mut doors = ecs.write_storage::<Door>();
     let mut blocks_visibility = ecs.write_storage::<BlocksVisibility>();
     let mut blocks_movement = ecs.write_storage::<BlocksTile>();
     let mut renderables = ecs.write_storage::<Renderable>();
-    let bystanders = ecs.read_storage::<Bystander>();
-    let vendors = ecs.read_storage::<Vendor>();
+    let factions = ecs.read_storage::<Faction>();
 
     let mut result = RunState::AwaitingInput;
 
     let mut swap_entities : Vec<(Entity, i32, i32)> = Vec::new();
-    for (entity, _player, pos, viewshed) in (&entities, &mut players, &mut positions, &mut viewsheds).join() {
+    for (entity, _player, pos, viewshed) in (&entities, &players, &mut positions, &mut viewsheds).join() {
         if pos.x + delta_x < 1 ||
             pos.x + delta_x > map.width - 1 ||
             pos.y + delta_y < 1 ||
@@ -35,9 +35,18 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
         let destination_index = map.xy_index(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[destination_index].iter() {
-            let bystander = bystanders.get(*potential_target);
-            let vendor = vendors.get(*potential_target);
-            if bystander.is_some() || vendor.is_some() {
+            let mut hostile = true;
+            if combat_stats.get(*potential_target).is_some() {
+                if let Some(faction) = factions.get(*potential_target) {
+                    let reaction = crate::raws::faction_reaction(
+                        &faction.name,
+                        "Player",
+                        &crate::raws::RAWS.lock().unwrap()
+                    );
+                    if reaction != Reaction::Attack { hostile = false };
+                }
+            }
+            if !hostile {
                 // Note that we want to move the bystander
                 swap_entities.push((*potential_target, pos.x, pos.y));
 
@@ -47,14 +56,14 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
                 entity_moved.insert(entity, EntityMoved{}).expect("Unable to insert marker.");
 
                 viewshed.dirty = true;
+                let mut ppos = ecs.write_resource::<Point>();
                 ppos.x = pos.x;
                 ppos.y = pos.y;
-                result = RunState::PlayerTurn;
             } else {
-                let pools = pools.get(*potential_target);
-                if let Some(_pools) = pools {
+                let target = combat_stats.get(*potential_target);
+                if let Some(_target) = target {
                     wants_to_melee.insert(entity, WantsToMelee { target: *potential_target }).expect("Add target failed.");
-                    return RunState::PlayerTurn;
+                    return RunState::Ticking;
                 }
             }
 
@@ -66,6 +75,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
                 let glyph = renderables.get_mut(*potential_target).unwrap();
                 glyph.glyph = rltk::to_cp437('/');
                 viewshed.dirty = true;
+                result = RunState::Ticking;
             }
         }
         if !map.blocked[destination_index] {
@@ -74,9 +84,10 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
             entity_moved.insert(entity, EntityMoved{}).expect("Unable to insert marker");
 
             viewshed.dirty = true;
+            let mut ppos = ecs.write_resource::<Point>();
             ppos.x = pos.x;
             ppos.y = pos.y;
-            result = RunState::PlayerTurn;
+            result = RunState::Ticking;
             match map.tiles[destination_index] {
                 TileType::DownStairs => result = RunState::NextLevel,
                 TileType::UpStairs => result = RunState::PreviousLevel,
@@ -149,7 +160,8 @@ pub fn try_previous_level(ecs: &mut World) -> bool {
 pub fn skip_turn(ecs: &mut World) -> RunState {
     let player_entity = ecs.fetch::<Entity>();
     let viewshed_components = ecs.read_storage::<Viewshed>();
-    let monsters = ecs.read_storage::<Monster>();
+    let factions = ecs.read_storage::<Faction>();
+
     let worldmap_resource = ecs.fetch::<Map>();
     
     let mut can_heal = true;
@@ -157,10 +169,19 @@ pub fn skip_turn(ecs: &mut World) -> RunState {
     for tile in viewshed.visible_tiles.iter() {
         let index = worldmap_resource.xy_index(tile.x, tile.y);
         for entity_id in worldmap_resource.tile_content[index].iter() {
-            let mob = monsters.get(*entity_id);
-            match mob {
+            let faction = factions.get(*entity_id);
+            match faction {
                 None => {}
-                Some(_) => { can_heal = false; }
+                Some(faction) => {
+                    let reaction = crate::raws::faction_reaction(
+                        &faction.name,
+                        "Player",
+                        &crate::raws::RAWS.lock().unwrap()
+                    );
+                    if reaction == Reaction::Attack {
+                        can_heal = false;
+                    }
+                }
             }
         }
     }
@@ -171,7 +192,7 @@ pub fn skip_turn(ecs: &mut World) -> RunState {
         pools.hit_points.current = i32::min(pools.hit_points.current  + 1, pools.hit_points.max);
     }
 
-    RunState::PlayerTurn
+    RunState::Ticking
 }
 
 pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
@@ -256,7 +277,7 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             _ => { return RunState::AwaitingInput }
         }
     }
-    RunState::PlayerTurn
+    RunState::Ticking
 }
 
 fn use_consumable_hotkey(gs: &mut State, key: i32) -> RunState {
@@ -284,7 +305,7 @@ fn use_consumable_hotkey(gs: &mut State, key: i32) -> RunState {
             *player_entity,
             WantsToUseItem { item: carried_consumables[key as usize], target: None }
         ).expect("Unable to insert intent)");
-        return RunState::PlayerTurn;
+        return RunState::Ticking;
     }
-    RunState::PlayerTurn
+    RunState::Ticking
 }

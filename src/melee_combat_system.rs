@@ -25,6 +25,8 @@ impl<'a> System<'a> for MeleeCombatSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
+        println!("Run MeleeCombat System");
+
         let (
             entities,
             mut log,

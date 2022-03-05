@@ -5,13 +5,14 @@ use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator, SerializeComponents, DeserializeComponents, MarkedBuilder};
 use specs::error::NoError;
 
-use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Monster, Name, BlocksTile,
+use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Name, BlocksTile,
             SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
-            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
-            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
-            DMSerializationHelper, LightSource};
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Quips, Attributes,
+            Skills, Pools, NaturalAttackDefense, LootTable, OtherLevelPosition,
+            DMSerializationHelper, LightSource, Initiative, MyTurn, Faction, WantsToApproach, WantsToFlee,
+            MoveMode};
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -46,13 +47,14 @@ pub fn save_game(ecs: &mut World) {
         let writer = File::create("./savegame.json").unwrap();
         let mut serializer = serde_json::Serializer::new(writer);
         serialize_individually!(ecs, serializer, data,
-            Position, Renderable, Player, Viewshed, Monster, Name, BlocksTile, 
+            Position, Renderable, Player, Viewshed, Name, BlocksTile,
             SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
-            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
-            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
-            DMSerializationHelper, LightSource
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Quips, Attributes,
+            Skills, Pools, NaturalAttackDefense, LootTable, OtherLevelPosition,
+            DMSerializationHelper, LightSource, Initiative, MyTurn, Faction, WantsToApproach, WantsToFlee,
+            MoveMode
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
@@ -101,13 +103,14 @@ pub fn load_game(ecs: &mut World) {
         );
 
         deserialize_individually!(ecs, de, d,
-            Position, Renderable, Player, Viewshed, Monster, Name, BlocksTile,
+            Position, Renderable, Player, Viewshed, Name, BlocksTile,
             SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
             WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleeWeapon, Wearable,
-            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Bystander, Vendor, Quips, Attributes,
-            Skills, Pools, NaturalAttackDefense, LootTable, Carnivore, Herbivore, OtherLevelPosition,
-            DMSerializationHelper, LightSource
+            WantsToRemoveItem, BlocksVisibility, Door, Hidden, Quips, Attributes,
+            Skills, Pools, NaturalAttackDefense, LootTable, OtherLevelPosition,
+            DMSerializationHelper, LightSource, Initiative, MyTurn, Faction, WantsToApproach, WantsToFlee,
+            MoveMode
         );
     }
 

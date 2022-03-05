@@ -6,6 +6,7 @@ use item_structs::Item;
 use mob_structs::Mob;
 pub use rawmaster::*;
 use spawn_table_structs::SpawnTableEntry;
+use crate::raws::faction_structs::FactionInfo;
 use crate::raws::prop_structs::Prop;
 use crate::raws::loot_structs::LootTable;
 
@@ -15,6 +16,7 @@ mod spawn_table_structs;
 mod rawmaster;
 mod prop_structs;
 mod loot_structs;
+pub mod faction_structs;
 
 #[derive(Deserialize, Debug)]
 pub struct Raws {
@@ -23,6 +25,7 @@ pub struct Raws {
     pub props: Vec<Prop>,
     pub spawn_table : Vec<SpawnTableEntry>,
     pub loot_table: Vec<LootTable>,
+    pub faction_table: Vec<FactionInfo>,
 }
 
 #[derive(Deserialize, Debug)]

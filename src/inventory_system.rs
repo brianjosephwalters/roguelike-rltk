@@ -155,20 +155,15 @@ impl<'a> System<'a> for ItemUseSystem {
                     match area_of_effect {
                         None => {
                             let index = map.xy_index(target.x, target.y);
-                            for mob in map.tile_content[index].iter() {
-                                targets.push(*mob);
-                            }
+                            crate::spatial::for_each_tile_content(index, |mob| targets.push(mob));
                         }
                         Some(area_of_effect) => {
                             let mut blast_tiles = rltk::field_of_view(target, area_of_effect.radius, &*map);
                             blast_tiles.retain( |p| p.x > 0 && p.x < map.width - 1 && p.y > 0 && p.y < map.height - 1);
                             for tile_index in blast_tiles.iter() {
                                 let index = map.xy_index(tile_index.x, tile_index.y);
-                                for mob in map.tile_content[index].iter() {
-                                    targets.push(*mob);
-                                }
+                                crate::spatial::for_each_tile_content(index, |mob| targets.push(mob));
                             }
-                            
                         }
                     }
                 }

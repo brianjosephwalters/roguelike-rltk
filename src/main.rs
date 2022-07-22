@@ -47,6 +47,7 @@ pub mod camera;
 mod gamesystem;
 mod lighting_system;
 mod ai;
+mod spatial;
 
 const SHOW_MAPGEN_VISUALIZER : bool = true;
 const MAP_WIDTH: i32 = 80;

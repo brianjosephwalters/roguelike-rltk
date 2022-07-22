@@ -1,6 +1,6 @@
 use specs::prelude::*;
 use super::{ Pools, SufferDamage, Player, Name, GameLog, RunState};
-use crate::{InBackpack, Position, Equipped, LootTable, Attributes};
+use crate::{InBackpack, Position, Equipped, LootTable, Attributes, Map};
 use rltk::RandomNumberGenerator;
 use crate::gamesystem::{player_hp_at_level, mana_at_level};
 
@@ -10,6 +10,9 @@ impl<'a> System<'a> for DamageSystem {
     type SystemData = (
         WriteStorage<'a, Pools>,
         WriteStorage<'a, SufferDamage>,
+        ReadStorage<'a, Position>,
+        WriteExpect<'a, Map>,
+        Entities<'a>,
         ReadExpect<'a, Entity>,
         ReadStorage<'a, Attributes>,
         WriteExpect<'a, GameLog>,
@@ -19,17 +22,26 @@ impl<'a> System<'a> for DamageSystem {
         let (
             mut pools,
             mut damage,
+            positions,
+            map,
+            entities,
             player,
             attributes,
             mut log,
         ) = data;
-
         let mut xp_gain = 0;
-        for (mut pools, damage) in (&mut pools, &damage).join() {
+        
+        for (entity, mut pools, damage) in (&entities, &mut pools, &damage).join() {
             for dmg in damage.amount.iter() {
                 pools.hit_points.current -= dmg.0;
                 if pools.hit_points.current < 1 && dmg.1 {
                     xp_gain += pools.level * 100;
+                    
+                    let pos = positions.get(entity);
+                    if let Some(pos) = pos {
+                        let index = map.xy_index(pos.y, pos.y);
+                        crate::spatial::remove_entity(entity, index);
+                    }
                 }
             }
         }

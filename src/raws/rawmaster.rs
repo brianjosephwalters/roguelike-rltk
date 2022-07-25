@@ -119,7 +119,11 @@ pub fn spawn_named_item(raws: &RawMaster, ecs: &mut World, key: &str, pos: Spawn
         }
 
         eb = eb.with(Name { name: item_template.name.clone()});
-        eb = eb.with(Item {});
+        eb = eb.with(Item {
+            initiative_penalty: item_template.initiative_penalty.unwrap_or(0.0),
+            weight_lbs: item_template.initiative_penalty.unwrap_or(0.0),
+            base_value: item_template.initiative_penalty.unwrap_or(0.0),
+        });
 
         if let Some(consumable) = &item_template.consumable {
             eb = eb.with(crate::components::Consumable {});
@@ -232,7 +236,16 @@ pub fn spawn_named_mob(raws: &RawMaster, ecs : &mut World, key: &str, pos: Spawn
             level: mob_level,
             xp: 0,
             hit_points: Pool { current: mob_hp, max: mob_hp },
-            mana: Pool { current: mob_mana, max: mob_mana }
+            mana: Pool { current: mob_mana, max: mob_mana },
+            total_weight: 0.0,
+            total_initiative_penalty: 0.0,
+            gold: if let Some(gold) = &mob_template.gold {
+                    let mut rng = rltk::RandomNumberGenerator::new();
+                    let (n, d, b) = parse_dice_string(&gold);
+                    (rng.roll_dice(n, d) + b) as f32
+                } else {
+                    0.0
+                }
         };
         eb = eb.with(pools);
 
@@ -289,6 +302,12 @@ pub fn spawn_named_mob(raws: &RawMaster, ecs : &mut World, key: &str, pos: Spawn
             eb = eb.with(Faction { name: faction.clone() });
         } else {
             eb = eb.with(Faction { name: "Mindless".to_string() });
+        }
+
+        eb = eb.with(EquipmentChanged{});
+
+        if let Some(vendor) = &mob_template.vendor {
+            eb = eb.with(Vendor { categories: vendor.clone() });
         }
 
         let new_mob = eb.build();
@@ -450,4 +469,21 @@ pub fn faction_reaction(my_faction: &str, their_faction: &str, raws: &RawMaster)
         }
     }
     Reaction::Ignore
+}
+
+pub fn get_vendor_items(categories: &[String], raws: &RawMaster) -> Vec<(String, f32)> {
+    let mut results: Vec<(String, f32)> = Vec::new();
+
+    for item in raws.raws.items.iter() {
+        if let Some(cat) = &item.vendor_category {
+            if categories.contains(cat) && item.base_value.is_some() {
+                results.push((
+                    item.name.clone(),
+                    item.base_value.unwrap()
+                ));
+            }
+        }
+    }
+    
+    results
 }

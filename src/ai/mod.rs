@@ -7,6 +7,7 @@ mod visible_ai_system;
 mod flee_ai_system;
 mod default_move_system;
 mod chase_ai_system;
+mod encumbrance_system;
 
 pub use initiative_system::InitiativeSystem;
 pub use turn_status::TurnStatusSystem;
@@ -17,3 +18,4 @@ pub use visible_ai_system::VisibleAI;
 pub use flee_ai_system::FleeAI;
 pub use default_move_system::DefaultMoveAI;
 pub use chase_ai_system::ChaseAI;
+pub use encumbrance_system::EncumbranceSystem;

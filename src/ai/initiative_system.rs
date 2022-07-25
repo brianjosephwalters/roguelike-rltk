@@ -1,6 +1,6 @@
 use rltk::RandomNumberGenerator;
 use specs::{Entities, Entity, Join, ReadExpect, ReadStorage, System, WriteExpect, WriteStorage};
-use crate::{Attributes, Initiative, MyTurn, Position, RunState};
+use crate::{Attributes, Initiative, MyTurn, Position, RunState, Pools};
 
 pub struct InitiativeSystem {}
 
@@ -16,7 +16,8 @@ impl<'a> System<'a> for InitiativeSystem {
         ReadStorage<'a, Attributes>,
         WriteExpect<'a, RunState>,
         ReadExpect<'a, Entity>,
-        ReadExpect<'a, rltk::Point>
+        ReadExpect<'a, rltk::Point>,
+        ReadStorage<'a, Pools>
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -30,7 +31,8 @@ impl<'a> System<'a> for InitiativeSystem {
             attributes,
             mut runstate,
             player,
-            player_pos
+            player_pos,
+            pools,
         ) = data;
 
         if *runstate != RunState::Ticking { return; }
@@ -41,6 +43,11 @@ impl<'a> System<'a> for InitiativeSystem {
         // Roll Initiative
         for (entity, initiative, pos) in (&entities, &mut initiatives, &positions).join() {
             initiative.current -= 1;
+
+            if let Some(pools) = pools.get(entity) {
+                initiative.current += f32::floor(pools.total_initiative_penalty) as i32;
+            }
+
             if initiative.current < 1 {
                 let mut my_turn = true;
 

@@ -1,6 +1,6 @@
 use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
-use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Faction, Attributes};
+use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Faction, Attributes, Vendor, VendorMode};
 
 use super::{Pools, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, EntityMoved};
 use std::cmp::{min, max};
@@ -21,6 +21,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
     let mut blocks_movement = ecs.write_storage::<BlocksTile>();
     let mut renderables = ecs.write_storage::<Renderable>();
     let factions = ecs.read_storage::<Faction>();
+    let vendors = ecs.read_storage::<Vendor>();
 
     let mut result = RunState::AwaitingInput;
 
@@ -35,6 +36,10 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
         let destination_index = map.xy_index(pos.x + delta_x, pos.y + delta_y);
 
         result = crate::spatial::for_each_tile_content_with_gamemode(destination_index, |potential_target| {
+            if let Some(_vendor) = vendors.get(potential_target) {
+                return Some(RunState::ShowVendor { vendor: potential_target, mode: VendorMode::Sell });
+            }
+            
             let mut hostile = true;
             if combat_stats.get(potential_target).is_some() {
                 if let Some(faction) = factions.get(potential_target) {

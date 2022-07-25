@@ -187,7 +187,10 @@
                 "effects" : { 
                     "food" : ""
                 }
-            }
+            },
+            "weight_lbs": 2.0,
+            "base_value": 0.5,
+            "vendor_category": "food"
         },
         {
             "name" : "Dagger",
@@ -387,7 +390,8 @@
                 "range" : 6,
                 "color" : "#FFFF55"
             },
-            "faction": "Bandit"
+            "faction": "Bandit",
+            "gold": "1d6"
         },
         {
             "name" : "Barkeep",
@@ -407,7 +411,8 @@
                 "Melee": 2
             },
             "equipped" : [ "Cudgel", "Cloth Tunic", "Cloth Pants", "Slippers" ],
-            "faction": "Townsfolk"
+            "faction": "Townsfolk",
+            "vendor": ["food"]
         },
         {
             "name" : "Shady Salesman",

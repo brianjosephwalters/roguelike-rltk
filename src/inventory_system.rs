@@ -1,4 +1,6 @@
 use specs::prelude::*;
+use crate::EquipmentChanged;
+
 use super::{
     WantsToPickupItem, 
     Name, InBackpack, 
@@ -22,16 +24,25 @@ impl<'a> System<'a> for ItemCollectionSystem {
         WriteStorage<'a, Position>,
         ReadStorage<'a, Name>,
         WriteStorage<'a, InBackpack>,
+        WriteStorage<'a, EquipmentChanged>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, mut wants_pickup, mut positions, names, mut backpack) = data;
+        let (
+            player_entity, 
+            mut gamelog, 
+            mut wants_pickup, 
+            mut positions, 
+            names, 
+            mut backpack,
+            mut dirty) = data;
 
         for pickup in wants_pickup.join() {
             positions.remove(pickup.item);
             backpack.insert(pickup.item, InBackpack {
                 owner: pickup.collected_by,
             }).expect("Unable to insert backpack entry");
+            dirty.insert(pickup.collected_by, EquipmentChanged {  }).expect("Unable to insert");
 
             if pickup.collected_by == *player_entity {
                 gamelog.entries.push(format!("You pick up the {}.", names.get(pickup.item).unwrap().name));
@@ -53,10 +64,19 @@ impl<'a> System<'a> for ItemDropSystem {
         ReadStorage<'a, Name>,
         WriteStorage<'a, Position>,
         WriteStorage<'a, InBackpack>,
+        WriteStorage<'a, EquipmentChanged>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut gamelog, entities, mut wants_drop, names, mut positions, mut backpack) = data;
+        let (
+            player_entity, 
+            mut gamelog, 
+            entities, 
+            mut wants_drop, 
+            names, 
+            mut positions, 
+            mut backpack,
+            mut dirty) = data;
 
         for (entity, to_drop) in (&entities, &wants_drop).join() {
             let mut dropper_pos: Position = Position{ x: 0, y:0 };
@@ -68,7 +88,7 @@ impl<'a> System<'a> for ItemDropSystem {
 
             positions.insert(to_drop.item, Position { x: dropper_pos.x, y: dropper_pos.y }).expect("Unabled to insert position.");
             backpack.remove(to_drop.item);
-
+            dirty.insert(entity, EquipmentChanged {}).expect("Unable to insert");
             if entity == *player_entity {
                 gamelog.entries.push(format!("You drop the {}.", names.get(to_drop.item).unwrap().name));
             }
@@ -123,7 +143,8 @@ impl<'a> System<'a> for ItemUseSystem {
         WriteStorage<'a, Confusion>,
         ReadStorage<'a, Equippable>,
         WriteStorage<'a, Equipped>,
-        WriteStorage<'a, InBackpack>
+        WriteStorage<'a, InBackpack>,
+        WriteStorage<'a, EquipmentChanged>,
     );
     fn run(&mut self, data: Self::SystemData) {
         let (
@@ -142,10 +163,12 @@ impl<'a> System<'a> for ItemUseSystem {
             mut confused,
             equippable, 
             mut equipped, 
-            mut backpack
+            mut backpack,
+            mut dirty,
         ) = data;
 
         for (entity, useitem) in (&entities, &wants_use).join() {
+            dirty.insert(entity, EquipmentChanged {  });
             let mut used_item = true;
             let mut targets : Vec<Entity> = Vec::new();
             match useitem.target {

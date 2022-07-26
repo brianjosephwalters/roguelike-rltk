@@ -305,3 +305,8 @@ pub struct EquipmentChanged {}
 pub struct Vendor {
     pub categories: Vec<String>
 }
+
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct ParticleLifetime {
+    pub lifetime_ms: f32
+}

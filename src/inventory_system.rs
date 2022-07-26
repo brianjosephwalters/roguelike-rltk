@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use crate::EquipmentChanged;
+use crate::{EquipmentChanged, particle_system::ParticleBuilder};
 
 use super::{
     WantsToPickupItem, 
@@ -144,6 +144,8 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, Equippable>,
         WriteStorage<'a, Equipped>,
         WriteStorage<'a, InBackpack>,
+        WriteExpect<'a, ParticleBuilder>,
+        ReadStorage<'a, Position>,
         WriteStorage<'a, EquipmentChanged>,
     );
     fn run(&mut self, data: Self::SystemData) {
@@ -164,6 +166,8 @@ impl<'a> System<'a> for ItemUseSystem {
             equippable, 
             mut equipped, 
             mut backpack,
+            mut particle_builder,
+            positions,
             mut dirty,
         ) = data;
 
@@ -186,6 +190,7 @@ impl<'a> System<'a> for ItemUseSystem {
                             for tile_index in blast_tiles.iter() {
                                 let index = map.xy_index(tile_index.x, tile_index.y);
                                 crate::spatial::for_each_tile_content(index, |mob| targets.push(mob));
+                                particle_builder.request(tile_index.x, tile_index.y, rltk::RGB::named(rltk::ORANGE), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('░'), 200.0);
                             }
                         }
                     }
@@ -238,6 +243,11 @@ impl<'a> System<'a> for ItemUseSystem {
                             }
                         }
                         used_item = true;
+
+                        let pos = positions.get(*target);
+                        if let Some(pos) = pos {
+                            particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::GREEN), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('♥'), 200.0);
+                        }
                     }  
                 }
             }
@@ -253,6 +263,11 @@ impl<'a> System<'a> for ItemUseSystem {
                             let mob_name = names.get(*mob).unwrap();
                             let item_name = names.get(useitem.item).unwrap();
                             gamelog.entries.push(format!("You use {} on {}, inflicting {} hp.", item_name.name, mob_name.name, damage.damage));
+                            
+                            let pos = positions.get(*mob);
+                            if let Some(pos) = pos {
+                                particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::RED), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
+                            }
                         }
                         used_item = true;
                     }
@@ -272,6 +287,11 @@ impl<'a> System<'a> for ItemUseSystem {
                                 let mob_name = names.get(*mob).unwrap();
                                 let item_name = names.get(useitem.item).unwrap();
                                 gamelog.entries.push(format!("You use {} on {}, confusing them.", item_name.name, mob_name.name));
+                            
+                                let pos = positions.get(*mob);
+                                if let Some(pos) = pos {
+                                    particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::MAGENTA), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('?'), 200.0);
+                                }
                             }
                             used_item = true;
                         }

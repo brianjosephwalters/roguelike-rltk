@@ -1,5 +1,6 @@
 use specs::prelude::*;
 use super::{Pools, WantsToMelee, Name, SufferDamage, GameLog};
+use crate::particle_system::ParticleBuilder;
 use crate::{Attributes, Skills, Position, Skill, NaturalAttackDefense, MeleeWeapon, WeaponAttribute, Equipped, EquipmentSlot, Wearable};
 use crate::gamesystem::skill_bonus;
 
@@ -14,6 +15,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
         ReadStorage<'a, Attributes>,
         ReadStorage<'a, Skills>,
         WriteStorage<'a, SufferDamage>,
+        WriteExpect<'a, ParticleBuilder>,
         ReadStorage<'a, Position>,
         ReadStorage<'a, Pools>,
         WriteExpect<'a, rltk::RandomNumberGenerator>,
@@ -35,7 +37,8 @@ impl<'a> System<'a> for MeleeCombatSystem {
             attributes,
             skills,
             mut inflict_damage,
-            _positions,
+            mut particle_builder,
+            positions,
             pools,
             mut rng,
             equipped_items,
@@ -116,12 +119,21 @@ impl<'a> System<'a> for MeleeCombatSystem {
                     let damage = i32::max(0, base_damage + attr_damage_bonus + skill_hit_bonus + skill_damage_bonus + weapon_damage_bonus);
                     SufferDamage::new_damage(&mut inflict_damage, wants_melee.target, damage, entity == *player_entity);
                     log.entries.push(format!("{} hits {}, for {} hp.", &name.name, &target_name.name, damage));
+                    if let Some(pos) = positions.get(wants_melee.target) {
+                        particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::ORANGE), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
+                    }
                 } else if natural_roll == 1 {
                     // Natural 1 miss
                     log.entries.push(format!("{} considers attacking {}, but misjudges the timing.", name.name, target_name.name));
+                    if let Some(pos) = positions.get(wants_melee.target) {
+                        particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::BLUE), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
+                    }
                 } else {
                     // Miss
                     log.entries.push(format!("{} attacks {}, but can't connect.", name.name, target_name.name));
+                    if let Some(pos) = positions.get(wants_melee.target) {
+                        particle_builder.request(pos.x, pos.y, rltk::RGB::named(rltk::CYAN), rltk::RGB::named(rltk::BLACK), rltk::to_cp437('‼'), 200.0);
+                    }
                 }
             }
         }

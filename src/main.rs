@@ -42,7 +42,7 @@ mod random_tables;
 pub mod saveload_system;
 pub mod map_builders;
 pub mod raws;
-
+pub mod particle_system;
 pub mod rex_assets;
 pub mod camera;
 mod gamesystem;
@@ -122,6 +122,8 @@ impl State {
         item_remove.run_now(&self.ecs);
         let mut lighting = lighting_system::LightingSystem{};
         lighting.run_now(&self.ecs);
+        let mut particles = particle_system::ParticleSpawnSystem{};
+        particles.run_now(&self.ecs);
         let mut encumbrance = ai::EncumbranceSystem{};
         encumbrance.run_now(&self.ecs);
 
@@ -188,6 +190,7 @@ impl GameState for State {
         }
 
         ctx.cls();
+        particle_system::cull_dead_particles(&mut self.ecs, ctx);
 
         match newrunstate {
             RunState::MainMenu{ .. } => { }
@@ -458,6 +461,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Chasing>();
     gs.ecs.register::<EquipmentChanged>();
     gs.ecs.register::<Vendor>();
+    gs.ecs.register::<ParticleLifetime>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
@@ -473,6 +477,7 @@ fn main() -> rltk::BError {
     
     gs.ecs.insert(RunState::MapGeneration{});
     gs.ecs.insert(gamelog::GameLog{ entries: vec!["Welcome to Rusty Roguelike!".to_string()]});
+    gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(rex_assets::RexAssets::new());
 
     gs.generate_world_map(1, 0);

@@ -23,7 +23,7 @@ impl<'a> System<'a> for DamageSystem {
             mut pools,
             mut damage,
             positions,
-            map,
+            mut map,
             entities,
             player,
             attributes,
@@ -42,6 +42,7 @@ impl<'a> System<'a> for DamageSystem {
                     let pos = positions.get(entity);
                     if let Some(pos) = pos {
                         let index = map.xy_index(pos.y, pos.y);
+                        map.bloodstains.insert(index);
                         crate::spatial::remove_entity(entity, index);
                     }
                 }

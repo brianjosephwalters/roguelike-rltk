@@ -81,6 +81,8 @@ fn get_tile_glyph_default(index: usize, map: &Map) -> (rltk::FontCharType, RGB, 
         }
     }
 
+    if map.bloodstains.contains(&index) { bg = RGB::from_f32(0.75, 0., 0.); }
+
     if !map.visible_tiles[index] {
         fg = fg.to_greyscale();
         bg = RGB::from_f32(0., 0., 0.);

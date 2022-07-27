@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use crate::{EquipmentChanged, particle_system::ParticleBuilder};
+use crate::{EquipmentChanged, particle_system::ParticleBuilder, ProvidesFood, HungerClock, HungerState};
 
 use super::{
     WantsToPickupItem, 
@@ -147,6 +147,8 @@ impl<'a> System<'a> for ItemUseSystem {
         WriteExpect<'a, ParticleBuilder>,
         ReadStorage<'a, Position>,
         WriteStorage<'a, EquipmentChanged>,
+        ReadStorage<'a, ProvidesFood>,
+        WriteStorage<'a, HungerClock>,
     );
     fn run(&mut self, data: Self::SystemData) {
         let (
@@ -169,6 +171,8 @@ impl<'a> System<'a> for ItemUseSystem {
             mut particle_builder,
             positions,
             mut dirty,
+            provides_food,
+            mut hunger_clocks
         ) = data;
 
         for (entity, useitem) in (&entities, &wants_use).join() {
@@ -229,6 +233,22 @@ impl<'a> System<'a> for ItemUseSystem {
                 }
             }
             
+            let item_edible = provides_food.get(useitem.item);
+            match item_edible {
+                None => {}
+                Some(_) => {
+                    used_item = true;
+                    let target = targets[0];
+                    let hc = hunger_clocks.get_mut(target);
+                    if let Some(hc) = hc {
+                        hc.state = HungerState::WellFed;
+                        hc.duration = 20;
+                        gamelog.entries.push(format!("You eat the {}.", names.get(useitem.item).unwrap().name));
+                    }
+                }
+            }
+
+
             let item_heals = healing.get(useitem.item);
             match item_heals {
                 None => {},

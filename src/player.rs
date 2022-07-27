@@ -1,6 +1,6 @@
 use rltk::{VirtualKeyCode, Point, Rltk};
 use specs::prelude::*;
-use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Faction, Attributes, Vendor, VendorMode};
+use crate::{TileType, Door, BlocksTile, BlocksVisibility, Renderable, Faction, Attributes, Vendor, VendorMode, HungerClock, HungerState};
 
 use super::{Pools, Position, Player, RunState, State, Map, Viewshed, WantsToMelee, Item, GameLog, WantsToPickupItem, EntityMoved};
 use std::cmp::{min, max};
@@ -196,6 +196,16 @@ pub fn skip_turn(ecs: &mut World) -> RunState {
                 }
             }
         });
+    }
+
+    let hunger_clocks = ecs.read_storage::<HungerClock>();
+    let hc = hunger_clocks.get(*player_entity);
+    if let Some(hc) = hc {
+        match hc.state {
+            HungerState::Hungry => can_heal = false,
+            HungerState::Starving => can_heal = false,
+            _ => {}
+        }
     }
 
     if can_heal {

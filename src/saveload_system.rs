@@ -12,7 +12,7 @@ use crate::{Position, SerializeMe, Renderable, Player, Viewshed, Name, BlocksTil
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Quips, Attributes,
             Skills, Pools, NaturalAttackDefense, LootTable, OtherLevelPosition,
             DMSerializationHelper, LightSource, Initiative, MyTurn, Faction, WantsToApproach, WantsToFlee,
-            MoveMode, EquipmentChanged, Vendor, ParticleLifetime};
+            MoveMode, EquipmentChanged, Vendor, ParticleLifetime, HungerClock, ProvidesFood};
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -54,7 +54,7 @@ pub fn save_game(ecs: &mut World) {
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Quips, Attributes,
             Skills, Pools, NaturalAttackDefense, LootTable, OtherLevelPosition,
             DMSerializationHelper, LightSource, Initiative, MyTurn, Faction, WantsToApproach, WantsToFlee,
-            MoveMode, EquipmentChanged, Vendor, ParticleLifetime
+            MoveMode, EquipmentChanged, Vendor, ParticleLifetime, HungerClock, ProvidesFood
         );
     }
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
@@ -110,7 +110,7 @@ pub fn load_game(ecs: &mut World) {
             WantsToRemoveItem, BlocksVisibility, Door, Hidden, Quips, Attributes,
             Skills, Pools, NaturalAttackDefense, LootTable, OtherLevelPosition,
             DMSerializationHelper, LightSource, Initiative, MyTurn, Faction, WantsToApproach, WantsToFlee,
-            MoveMode, EquipmentChanged, Vendor, ParticleLifetime
+            MoveMode, EquipmentChanged, Vendor, ParticleLifetime, HungerClock, ProvidesFood
         );
     }
 

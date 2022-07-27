@@ -1,7 +1,7 @@
 use specs::prelude::*;
 use super::{Pools, WantsToMelee, Name, SufferDamage, GameLog};
 use crate::particle_system::ParticleBuilder;
-use crate::{Attributes, Skills, Position, Skill, NaturalAttackDefense, MeleeWeapon, WeaponAttribute, Equipped, EquipmentSlot, Wearable};
+use crate::{Attributes, Skills, Position, Skill, NaturalAttackDefense, MeleeWeapon, WeaponAttribute, Equipped, EquipmentSlot, Wearable, HungerClock, HungerState};
 use crate::gamesystem::skill_bonus;
 
 pub struct MeleeCombatSystem {}
@@ -23,6 +23,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
         ReadStorage<'a, MeleeWeapon>,
         ReadStorage<'a, Wearable>,
         ReadStorage<'a, NaturalAttackDefense>,
+        ReadStorage<'a, HungerClock>,
         ReadExpect<'a, Entity>,
     );
 
@@ -45,6 +46,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
             meleeweapons,
             wearables,
             natural,
+            hunger_clocks,
             player_entity,
         ) = data;
 
@@ -90,7 +92,12 @@ impl<'a> System<'a> for MeleeCombatSystem {
                     else { attacker_attributes.quickness.bonus};
                 let skill_hit_bonus = skill_bonus(Skill::Melee, &*attacker_skills);
                 let weapon_hit_bonus = weapon_info.hit_bonus;
-                let status_hit_bonus = 0;
+                let mut status_hit_bonus = 0;
+                if let Some(hc) = hunger_clocks.get(entity) {
+                    if hc.state == HungerState::WellFed {
+                        status_hit_bonus += 1;
+                    }
+                }
                 let modified_hit_roll = natural_roll + attribute_hit_bonus + skill_hit_bonus + weapon_hit_bonus + status_hit_bonus;
 
                 let mut armor_item_bonus_f = 0.0;

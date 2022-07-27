@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 use specs::saveload::{MarkedBuilder, SimpleMarker};
-use crate::EquipmentChanged;
+use crate::{EquipmentChanged, HungerState, HungerClock, Item, ProvidesFood, Consumable};
 use crate::{Map, TileType, raws::get_spawn_table_for_depth, Attributes, Attribute, Skills, Skill, Pool, Pools, LightSource, Initiative, Faction};
 
 use super::{
@@ -56,7 +56,8 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
         .with(LightSource { color: RGB::from_f32(1.0, 1.0, 0.5), range: 8})
         .with(Initiative { current: 0 })
         .with(Faction { name: "Player".to_string() })
-        .with(EquipmentChanged{})
+        .with(EquipmentChanged {})
+        .with(HungerClock { state: HungerState::WellFed, duration: 20 })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 

@@ -2,6 +2,7 @@ extern crate serde;
 #[macro_use]
 extern crate lazy_static;
 
+use hunger_system::HungerSystem;
 use raws::{RAWS, SpawnType};
 use rltk::{GameState, Point, Rltk};
 use specs::{World, WorldExt};
@@ -45,6 +46,7 @@ pub mod raws;
 pub mod particle_system;
 pub mod rex_assets;
 pub mod camera;
+pub mod hunger_system;
 mod gamesystem;
 mod lighting_system;
 mod ai;
@@ -120,6 +122,8 @@ impl State {
         item_drop.run_now(&self.ecs);
         let mut item_remove = ItemRemoveSystem{};
         item_remove.run_now(&self.ecs);
+        let mut hunger = HungerSystem{};
+        hunger.run_now(&self.ecs);
         let mut lighting = lighting_system::LightingSystem{};
         lighting.run_now(&self.ecs);
         let mut particles = particle_system::ParticleSpawnSystem{};
@@ -462,6 +466,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<EquipmentChanged>();
     gs.ecs.register::<Vendor>();
     gs.ecs.register::<ParticleLifetime>();
+    gs.ecs.register::<HungerClock>();
+    gs.ecs.register::<ProvidesFood>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

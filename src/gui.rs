@@ -7,7 +7,7 @@ use super::{
     Equipped
 };
 use crate::rex_assets::RexAssets;
-use crate::{camera, Hidden, Attribute, Attributes, Consumable, VendorMode, Item, Vendor};
+use crate::{camera, Hidden, Attribute, Attributes, Consumable, VendorMode, Item, Vendor, HungerClock, HungerState};
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
     use rltk::to_cp437;
@@ -94,6 +94,16 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
             y += 1;
             index += 1;
         }
+    }
+
+    // Status
+    let hunger = ecs.read_storage::<HungerClock>();
+    let hc = hunger.get(*player_entity).unwrap();
+    match hc.state {
+        HungerState::WellFed => ctx.print_color(50, 44, RGB::named(rltk::GREEN), RGB::named(rltk::BLACK), "Well Fed"),
+        HungerState::Normal => {},
+        HungerState::Hungry => ctx.print_color(50, 44, RGB::named(rltk::ORANGE), RGB::named(rltk::BLACK), "Hungry"),
+        HungerState::Starving => ctx.print_color(50, 44, RGB::named(rltk::RED), RGB::named(rltk::BLACK), "Starving"),
     }
 
     // Draw the log
